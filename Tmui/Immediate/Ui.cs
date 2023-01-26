@@ -38,7 +38,7 @@ public partial class Ui
 
         _radialGroups = new();
 
-        _controlId = -1;
+        ControlId = -1;
         _openedDropdownId = -1;
 
         _cursorPosPlease = null;
@@ -50,24 +50,23 @@ public partial class Ui
 
     private Dictionary<int, InteractionState> _prevFrameIxn;
     private readonly Stack<ValueTuple<int, int>> _radialGroups;
-    private int _controlId;
-
     private int _openedDropdownId; // -1 means no dropdown is opened
     private Rect _openedDropdownRect;
     private bool _changed;
 
-    private Pos? _cursorPosPlease;
+    private Pos? _cursorPosPlease; // move cursor here after rendering is done
 
     public Style Style;
 
     public ITerminal Terminal { get; }
+    public Surface Surface { get; }
     public Input Input { get; }
 
     public InteractionOverride InteractionOverride { get; }
+    public int ControlId { get; private set; }
+
     public bool Enabled { get; set; }
     public bool Changed { get => _changed; set { _changed = value; if (value) ReqRedraw = true; } }
-
-    public Surface Surface { get; private set; }
     public bool ReqRedraw { get; set; }
 
     public void Clear()
@@ -77,7 +76,7 @@ public partial class Ui
         Enabled = true;
         Changed = false;
 
-        _controlId = -1;
+        ControlId = -1;
 
         GetInteraction(new(0, 0, Terminal.BufferSize));
     }
@@ -152,7 +151,7 @@ public partial class Ui
 
     private int CreateControlId()
     {
-        return ++_controlId;
+        return ++ControlId;
     }
 
     private Style CreateDefaultStyle()
