@@ -1,5 +1,4 @@
 ﻿using Tmui;
-using Tmui.Core;
 using Tmui.Graphics;
 using Tmui.Immediate;
 using Tmui.Messages;
@@ -21,7 +20,6 @@ int selectedTextAlignIndex = 1;
 TextBoxScrollFlags scrollFlags = TextBoxScrollFlags.None;
 bool scrollFlagsVertical = true;
 bool scrollFlagsHorizontal = false;
-EditTextBoxState editTextBoxState = new();
 
 TermApp app = new();
 Ui ui = new(app.Terminal, app.Input);
@@ -46,7 +44,7 @@ app.AddMsgHandler<UpdateMsg>(_ =>
         ui.Style.Accent = ui.Style.Accent with { Default = accentColors[selectedAccentColorIndex] };
     }
 
-    ui.EditTextBox((2, 5, 30, 15), loremIpsum, loremIpsumLines, (TextAlign.Start, textBoxHorizontalAlign), scrollFlags, ref editTextBoxState);
+    ui.TextBox((2, 5, 30, 15), new ReadOnlySpan<char>(loremIpsum), loremIpsumLines, (TextAlign.Start, textBoxHorizontalAlign), scrollFlags);
 
     ui.Label((34, 5), "Text alignment");
 

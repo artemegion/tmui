@@ -43,7 +43,7 @@ public partial class Ui
         if (state.Any) InteractionOverride.Push(state);
 
         Checkbox(ref isChecked, new(rect.X, rect.Y), checkboxStyle, accentStyle);
-        TextBox(rect with { X = rect.X + 3, W = rect.W - 3 }, label, wrapText: true, labelAlign, textBoxStyle);
+        TextBox(rect with { X = rect.X + 3, W = rect.W - 3 }, label, labelAlign, textBoxStyle);
 
         if (state.Any) InteractionOverride.Pop();
     }

@@ -113,4 +113,10 @@ public partial class Ui
     {
         TextBox(rect, text, TextAlign.Start, TextBoxScrollFlags.None, textBoxStyle);
     }
+
+
+    public void TextBox(Rect rect, Span<char> text, Span<Range> rangesOfLines, TextAlignVH textAlign, TextBoxScrollFlags scrollFlags, TextBoxStyle? textBoxStyle = null)
+    {
+        throw new NotImplementedException();
+    }
 }
