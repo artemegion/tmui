@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32526.322
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tmui", "Tmui\Tmui.csproj", "{448E76AF-78C3-4433-B68D-6F66BB29DD78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tmui.Examples", "Tmui.Examples\Tmui.Examples.csproj", "{A341BEAB-5BCA-45F4-929F-5C02E2348322}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{448E76AF-78C3-4433-B68D-6F66BB29DD78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{448E76AF-78C3-4433-B68D-6F66BB29DD78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{448E76AF-78C3-4433-B68D-6F66BB29DD78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{448E76AF-78C3-4433-B68D-6F66BB29DD78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A341BEAB-5BCA-45F4-929F-5C02E2348322}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A341BEAB-5BCA-45F4-929F-5C02E2348322}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A341BEAB-5BCA-45F4-929F-5C02E2348322}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A341BEAB-5BCA-45F4-929F-5C02E2348322}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7D489361-E8CE-4701-A908-11D9E8806134}
+	EndGlobalSection
+EndGlobal
