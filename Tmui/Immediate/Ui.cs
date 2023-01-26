@@ -22,34 +22,42 @@ public partial class Ui
 {
     public Ui(ITerminal terminal, Input input)
     {
-        Terminal = terminal;
-        Input = input;
-        _context = new(Terminal);
+        _radialGroups = new(5);
+        _scrollStates = new(10);
 
-        InteractionOverride = new();
+        _prevFrameIxn = new(100);
 
-        Surface = new Surface(terminal.BufferSize.X, terminal.BufferSize.Y);
-        Surface.Clear();
-
-        Style = CreateDefaultStyle();
-
-        Enabled = true;
-        Changed = false;
-
-        _radialGroups = new();
-
-        ControlId = -1;
         _openedDropdownId = -1;
+        _openedDropdownRect = new(0, 0, 0, 0);
+        _changed = false;
 
         _cursorPosPlease = null;
 
-        _prevFrameIxn = new();
+        Style = CreateDefaultStyle();
+
+        Terminal = terminal;
+        Surface.Clear();
+        Surface = new Surface(terminal.BufferSize.X, terminal.BufferSize.Y);
+
+        Input = input;
+
+        _context = new(Terminal);
+
+        InteractionOverride = new();
+        ControlId = -1;
+
+        Enabled = true;
+        Changed = false;
+        ReqRedraw = false;
     }
 
     private readonly TerminalGraphicsContext _context;
 
-    private Dictionary<int, InteractionState> _prevFrameIxn;
     private readonly Stack<ValueTuple<int, int>> _radialGroups;
+    private readonly Dictionary<int, Scroll> _scrollStates;
+
+    private Dictionary<int, InteractionState> _prevFrameIxn;
+
     private int _openedDropdownId; // -1 means no dropdown is opened
     private Rect _openedDropdownRect;
     private bool _changed;
@@ -146,6 +154,21 @@ public partial class Ui
             }
 
             return ixn;
+        }
+    }
+
+    public Scroll GetScroll(int controlId)
+    {
+        if (_scrollStates.TryGetValue(controlId, out var state))
+        {
+            return state;
+        }
+        else
+        {
+            state = new Scroll(0, 0);
+            _scrollStates.Add(controlId, state);
+
+            return state;
         }
     }
 
