@@ -12,4 +12,14 @@
 
 namespace Tmui.Immediate;
 
-public record class Scroll(int ScrollX, int ScrollY);
+public class Scroll
+{
+	public Scroll(int scrollX, int scrollY)
+	{
+		ScrollX = scrollX;
+		ScrollY = scrollY;
+	}
+
+	public int ScrollX;
+	public int ScrollY;
+}

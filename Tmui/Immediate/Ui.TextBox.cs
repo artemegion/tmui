@@ -1,4 +1,6 @@
-﻿using Tmui.Core;
+﻿using System.Buffers;
+
+using Tmui.Core;
 using Tmui.Extensions;
 using Tmui.Graphics;
 
@@ -6,100 +8,63 @@ namespace Tmui.Immediate;
 
 public partial class Ui
 {
-    public void TextBox(Rect rect, ReadOnlySpan<char> text, bool wrapText, TextAlignVH textAlign, TextBoxStyle? textBoxStyle = null)
+    public void TextBox(Rect rect, ReadOnlySpan<char> text, ReadOnlySpan<Range> rangesOfLines, TextAlignVH textAlign, TextBoxScrollFlags scrollFlags, TextBoxStyle? textBoxStyle = null)
     {
-        int p0 = 0;
-
-        Span<Range> rangesOfLines = stackalloc Range[rect.H];
-        Surface.WrapText(text, wrapText ? rect.W : int.MaxValue, rangesOfLines, out int wrappedLinesCount);
-
-        TextBox(rect, text, rangesOfLines, textAlign, TextBoxScrollFlags.None, ref p0, ref p0, textBoxStyle);
-    }
-
-    public void TextBox(Rect rect, ReadOnlySpan<char> text, TextAlignVH textAlign, TextBoxStyle? textBoxStyle = null)
-    {
-        int p0 = 0;
-
-        Span<Range> rangesOfLines = stackalloc Range[rect.H];
-        Surface.WrapText(text, int.MaxValue, rangesOfLines, out int wrappedLinesCount);
-
-        TextBox(rect, text, rangesOfLines, textAlign, TextBoxScrollFlags.None, ref p0, ref p0, textBoxStyle);
-    }
-
-    public void TextBox(Rect rect, ReadOnlySpan<char> text, bool wrapText, TextAlignVH textAlign, TextBoxScrollFlags scroll, ref int vScroll, ref int hScroll, TextBoxStyle? textBoxStyle = null)
-    {
-        Span<Range> rangesOfLines = stackalloc Range[rect.H];
-        Surface.WrapText(text, wrapText ? rect.W : int.MaxValue, rangesOfLines, out int wrappedLinesCount);
-
-        TextBox(rect, text, rangesOfLines, textAlign, scroll, ref vScroll, ref hScroll, textBoxStyle);
-    }
-
-    public void TextBox(Rect rect, ReadOnlySpan<char> text, TextAlignVH textAlign, TextBoxScrollFlags scroll, ref int vScroll, ref int hScroll, TextBoxStyle? textBoxStyle = null)
-    {
-        Span<Range> rangesOfLines = stackalloc Range[rect.H];
-        Surface.WrapText(text, int.MaxValue, rangesOfLines, out int wrappedLinesCount);
-
-        TextBox(rect, text, rangesOfLines, textAlign, scroll, ref vScroll, ref hScroll, textBoxStyle);
-    }
-
-    public void TextBox(Rect rect, ReadOnlySpan<char> text, ReadOnlySpan<Range> rangesOfLines, TextAlignVH textAlign, TextBoxScrollFlags scroll, ref int vScroll, ref int hScroll, TextBoxStyle? textBoxStyle = null)
-    {
-        int controlId = CreateControlId();
         textBoxStyle ??= Style.TextBox;
+        int controlId = CreateControlId();
+        Scroll scroll = GetScroll(controlId);
 
-        int textX = rect.X, textY = rect.Y;
-        int textW = rect.W, textH = rect.H;
+        Rect textRect = rect;
 
         int verticalContentLength = rangesOfLines.Length;
-        bool canScrollVertical = scroll.HasFlag(TextBoxScrollFlags.Vertical) && verticalContentLength > rect.H;
+        bool canScrollVertical = scrollFlags.HasFlag(TextBoxScrollFlags.Vertical) && verticalContentLength > rect.H;
 
         int horizontalContentLength = rangesOfLines.GetLongest(text.Length);
-        bool canScrollHorizontal = scroll.HasFlag(TextBoxScrollFlags.Horizontal) && horizontalContentLength > rect.W;
-
-        if (canScrollHorizontal)
-        {
-            textX -= hScroll;
-            textW += hScroll;
-        }
+        bool canScrollHorizontal = scrollFlags.HasFlag(TextBoxScrollFlags.Horizontal) && horizontalContentLength > rect.W;
 
         if (canScrollVertical)
         {
             // text align doesn't change anything in this case so no sense computing it
             textAlign.V = TextAlign.Start;
-
-            // because we only draw rect.H lines, in order to scroll we can just skip vScroll lines
-            if (vScroll >= rangesOfLines.Length) rangesOfLines = ReadOnlySpan<Range>.Empty;
-            else rangesOfLines = rangesOfLines[vScroll..];
         }
+
+        // scroll horizontal by moving the text left by scroll value
+        textRect.X -= scroll.ScrollX;
+        textRect.W += scroll.ScrollX;
+
+        // because we only draw rect.H lines, in order to scroll vertically we can just skip scroll.Y lines
+        if (scroll.ScrollY >= rangesOfLines.Length) rangesOfLines = Span<Range>.Empty;
+        else rangesOfLines = rangesOfLines[scroll.ScrollY..];
 
         Surface.FillRect(rect, textBoxStyle.Value.BgColor);
 
-        InteractionState tbIxnState = GetInteraction(rect with { W = canScrollVertical ? rect.W - 1 : rect.W, H = canScrollHorizontal ? rect.H - 1 : rect.H }, controlId);
+        InteractionState textInteraction = GetInteraction(textRect, controlId);
 
-        if (canScrollHorizontal || scroll.HasFlag(TextBoxScrollFlags.AlwaysShow))
+        if (canScrollHorizontal || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow))
         {
-            bool overrideIxn = tbIxnState.Hover && Input.KeyHeld(Key.LeftShift);
-            if (overrideIxn) InteractionOverride.Push(tbIxnState);
+            bool overrideScrollbarInteraction = textInteraction.Hover && Input.KeyHeld(Key.LeftShift);
+            if (overrideScrollbarInteraction) InteractionOverride.Push(textInteraction);
 
-            textH -= 1;
-            Scrollbar(new(rect.X, rect.Y + rect.H - 1, canScrollVertical ? rect.W - 1 : rect.W, 1), Axis.Horizontal, horizontalContentLength, ref hScroll);
+            // TODO: textbox with height 1
+            textRect.H -= 1;
+            Scrollbar(new(rect.X, rect.Y + rect.H - 1, canScrollVertical ? rect.W - 1 : rect.W, 1), Axis.Horizontal, horizontalContentLength, ref scroll.ScrollX);
 
-            if (overrideIxn) InteractionOverride.Pop();
+            if (overrideScrollbarInteraction) InteractionOverride.Pop();
         }
-        else CreateControlId(); // textbox should always use 3 control ids, so changes in textbox's content will not change ids of controls drawn after it
+        else CreateControlId(); // use id even if no scrollbar is present, so when content changes it doesn't fuck up other control's state
 
-        if (canScrollVertical || scroll.HasFlag(TextBoxScrollFlags.AlwaysShow))
+        if (canScrollVertical || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow))
         {
-            if (tbIxnState.Hover) InteractionOverride.Push(tbIxnState);
+            if (textInteraction.Hover) InteractionOverride.Push(textInteraction);
 
-            textW -= 1;
-            Scrollbar(new(rect.X + rect.W - 1, rect.Y, 1, canScrollHorizontal ? rect.H - 1 : rect.H), Axis.Vertical, verticalContentLength, ref vScroll);
+            textRect.W -= 1;
+            Scrollbar(new(rect.X + rect.W - 1, rect.Y, 1, canScrollHorizontal ? rect.H - 1 : rect.H), Axis.Vertical, verticalContentLength, ref scroll.ScrollY);
 
-            if (tbIxnState.Hover) InteractionOverride.Pop();
+            if (textInteraction.Hover) InteractionOverride.Pop();
         }
         else CreateControlId();
 
-        Rect maskRect = (canScrollHorizontal || scroll.HasFlag(TextBoxScrollFlags.AlwaysShow), canScrollVertical || scroll.HasFlag(TextBoxScrollFlags.AlwaysShow)) switch
+        Rect maskRect = (canScrollHorizontal || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow), canScrollVertical || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow)) switch
         {
             (true, true) => new(rect.X, rect.Y, rect.W - 1, rect.H - 1),
             (true, false) => new(rect.X, rect.Y, rect.W, rect.H - 1),
@@ -109,8 +74,43 @@ public partial class Ui
 
         Surface.Mask.Push(maskRect);
 
-        Surface.DrawText(new(textX, textY, textW, textH), text, rangesOfLines, textAlign, textBoxStyle.Value.TextColor);
+        Surface.DrawText(textRect, text, rangesOfLines, textAlign, textBoxStyle.Value.TextColor);
 
         Surface.Mask.Pop();
+    }
+
+    public void TextBox(Rect rect, ReadOnlySpan<char> text, ReadOnlySpan<Range> rangesOfLines, TextAlignVH textAlign, TextBoxStyle? textBoxStyle = null)
+    {
+        TextBox(rect, text, rangesOfLines, textAlign, TextBoxScrollFlags.None, textBoxStyle);
+    }
+
+    public void TextBox(Rect rect, ReadOnlySpan<char> text, TextAlignVH textAlign, TextBoxScrollFlags scrollFlags, TextBoxStyle? textBoxStyle = null)
+    {
+        Range[] rangesOfLines = ArrayPool<Range>.Shared.Rent(rect.H);
+        Surface.WrapText(text, scrollFlags.HasFlag(TextBoxScrollFlags.Horizontal) ? int.MaxValue : rect.W, rangesOfLines, out int wrappedLines);
+
+        ArrayPool<Range>.Shared.Return(rangesOfLines);
+
+        // If there are more lines than what we predicted (rect.H), get a sufficiently sized buffer and wrap the text again.
+        // May not be the most optimal solution, but it works. Also I don't expect to have a lot of lines in a text box.
+        if (wrappedLines > rangesOfLines.Length)
+        {
+            rangesOfLines = ArrayPool<Range>.Shared.Rent(wrappedLines);
+            Surface.WrapText(text, scrollFlags.HasFlag(TextBoxScrollFlags.Horizontal) ? int.MaxValue : rect.W, rangesOfLines, out wrappedLines);
+        }
+
+        TextBox(rect, text, rangesOfLines, textAlign, scrollFlags, textBoxStyle);
+
+        ArrayPool<Range>.Shared.Return(rangesOfLines);
+    }
+
+    public void TextBox(Rect rect, ReadOnlySpan<char> text, TextAlignVH textAlign, TextBoxStyle? textBoxStyle = null)
+    {
+        TextBox(rect, text, textAlign, TextBoxScrollFlags.None);
+    }
+
+    public void TextBox(Rect rect, ReadOnlySpan<char> text, TextBoxStyle? textBoxStyle = null)
+    {
+        TextBox(rect, text, TextAlign.Start, TextBoxScrollFlags.None, textBoxStyle);
     }
 }
