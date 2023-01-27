@@ -1,5 +1,5 @@
 ﻿using Tmui.Device;
-using Tmui.Device.Win32;
+using Tmui.Device.Windows;
 using Tmui.Messages;
 
 namespace Tmui;
