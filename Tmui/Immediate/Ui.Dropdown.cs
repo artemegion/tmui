@@ -59,7 +59,6 @@ public partial class Ui
                     selectedOption = newSelectedOption;
 
                     _openedDropdownId = -1;
-                    _openedDropdownRect = new(0, 0, 0, 0);
 
                     break;
                 }
@@ -78,7 +77,6 @@ public partial class Ui
                 if (bufferInteraction.Clicked && !headerInteraction.Clicked)
                 {
                     _openedDropdownId = -1;
-                    _openedDropdownRect = new(0, 0, 0, 0);
                     ReqRedraw = true;
                 }
             }

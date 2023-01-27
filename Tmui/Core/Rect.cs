@@ -9,6 +9,16 @@ public record struct Rect(int X, int Y, int W, int H)
 
     }
 
+    public bool IsOrigin => X == 0 && Y == 0 && W == 0 && H == 0;
+
+    public void Reset()
+    {
+        X = 0;
+        Y = 0;
+        W = 0;
+        H = 0;
+    }
+
     public static bool IsPointInside(Rect rect, Pos pos)
     {
         return pos.X >= rect.X && pos.X < rect.X + rect.W && pos.Y >= rect.Y && pos.Y < rect.Y + rect.H;

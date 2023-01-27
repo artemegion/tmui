@@ -113,6 +113,10 @@ public partial class Ui
         }
 
         ReqRedraw = false;
+
+        if (_openedDropdownId == -1)
+            _openedDropdownRect.Reset();
+
         return false;
     }
 
@@ -128,32 +132,23 @@ public partial class Ui
 
             bool isHover = (!Input.PressedMousePos.HasValue || Rect.IsPointInside(rect, Input.PressedMousePos.Value)) && Rect.IsPointInside(rect, Input.MousePos);
 
-            if (isHover && _openedDropdownId > -1 && Rect.IsPointInside(_openedDropdownRect, Input.MousePos))
+            if (isHover && !_openedDropdownRect.IsOrigin && Rect.IsPointInside(_openedDropdownRect, Input.MousePos))
             {
                 isHover = controlId == _openedDropdownId || (controlId >= _openedDropdownId + 1000000 && controlId < _openedDropdownId + 1000000 + 1000);
             }
 
-            var ixn = new InteractionState(
+            var interaction = new InteractionState(
                 isHover,
                 isHover && Input.KeyHeld(Key.MouseLeft),
                 isHover && Input.KeyReleased(Key.MouseLeft) && Input.PressedMousePos.HasValue && Rect.IsPointInside(rect, Input.PressedMousePos.Value)
             );
 
-            // commenting the line below fixes an issue where after selecting an option from a dropdown,
-            // the dropdown options would only partially disappear, and some of them would stay
-            // until an interaction was made with any control (like hover etc.);
-            // it does that because after the dropdown closes we interact with the buffer(window) itself,
-            // so while the bug still exists, it is not visible anymore-
+            if (!_prevFrameIxn.ContainsKey(controlId) || _prevFrameIxn[controlId] != interaction)
+                ReqRedraw = true;
 
-            // if (controlId > -1) - 
-            {
-                if (!_prevFrameIxn.ContainsKey(controlId) || _prevFrameIxn[controlId] != ixn)
-                    ReqRedraw = true;
+            _prevFrameIxn[controlId] = interaction;
 
-                _prevFrameIxn[controlId] = ixn;
-            }
-
-            return ixn;
+            return interaction;
         }
     }
 
