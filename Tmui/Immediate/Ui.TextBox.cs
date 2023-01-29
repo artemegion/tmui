@@ -28,14 +28,6 @@ public partial class Ui
             textAlign.V = TextAlign.Start;
         }
 
-        // scroll horizontal by moving the text left by scroll value
-        textRect.X -= scroll.ScrollX;
-        textRect.W += scroll.ScrollX;
-
-        // because we only draw rect.H lines, in order to scroll vertically we can just skip scroll.Y lines
-        if (scroll.ScrollY >= rangesOfLines.Length) rangesOfLines = Span<Range>.Empty;
-        else rangesOfLines = rangesOfLines[scroll.ScrollY..];
-
         Surface.FillRect(rect, textBoxStyle.Value.BgColor);
 
         InteractionState textInteraction = GetInteraction(new(rect.X, rect.Y, canScrollVertical ? rect.W - 1 : rect.W, canScrollHorizontal ? rect.H - 1 : rect.H), controlId);
@@ -63,6 +55,14 @@ public partial class Ui
             if (textInteraction.Hover) InteractionOverride.Pop();
         }
         else CreateControlId();
+
+        // scroll horizontal by moving the text left by scroll value
+        textRect.X -= scroll.ScrollX;
+        textRect.W += scroll.ScrollX;
+
+        // because we only draw rect.H lines, in order to scroll vertically we can just skip scroll.Y lines
+        if (scroll.ScrollY >= rangesOfLines.Length) rangesOfLines = Span<Range>.Empty;
+        else rangesOfLines = rangesOfLines[scroll.ScrollY..];
 
         Rect maskRect = (canScrollHorizontal || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow), canScrollVertical || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow)) switch
         {
