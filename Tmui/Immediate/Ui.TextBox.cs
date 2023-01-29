@@ -38,7 +38,7 @@ public partial class Ui
 
         Surface.FillRect(rect, textBoxStyle.Value.BgColor);
 
-        InteractionState textInteraction = GetInteraction(textRect, controlId);
+        InteractionState textInteraction = GetInteraction(new(rect.X, rect.Y, canScrollVertical ? rect.W - 1 : rect.W, canScrollHorizontal ? rect.H - 1 : rect.H), controlId);
 
         if (canScrollHorizontal || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow))
         {
@@ -86,27 +86,33 @@ public partial class Ui
 
     public void TextBox(Rect rect, ReadOnlySpan<char> text, TextAlignVH textAlign, TextBoxScrollFlags scrollFlags, TextBoxStyle? textBoxStyle = null)
     {
-        Range[] rangesOfLines = ArrayPool<Range>.Shared.Rent(rect.H);
-        Surface.WrapText(text, scrollFlags.HasFlag(TextBoxScrollFlags.Horizontal) ? int.MaxValue : rect.W, rangesOfLines, out int wrappedLines);
+        int textWidth = scrollFlags.HasFlag(TextBoxScrollFlags.Horizontal) ? int.MaxValue : (scrollFlags.HasFlag(TextBoxScrollFlags.Vertical) ? rect.W - 1 : rect.W);
 
-        ArrayPool<Range>.Shared.Return(rangesOfLines);
+        Range[] rentedArr = ArrayPool<Range>.Shared.Rent(rect.H);
+        Span<Range> rangesOfLines = new(rentedArr, 0, rect.H);
+
+        Surface.WrapText(text, textWidth, rangesOfLines, out int wrappedLines);
 
         // If there are more lines than what we predicted (rect.H), get a sufficiently sized buffer and wrap the text again.
         // May not be the most optimal solution, but it works. Also I don't expect to have a lot of lines in a text box.
         if (wrappedLines > rangesOfLines.Length)
         {
-            rangesOfLines = ArrayPool<Range>.Shared.Rent(wrappedLines);
-            Surface.WrapText(text, scrollFlags.HasFlag(TextBoxScrollFlags.Horizontal) ? int.MaxValue : rect.W, rangesOfLines, out wrappedLines);
+            ArrayPool<Range>.Shared.Return(rentedArr);
+
+            rentedArr = ArrayPool<Range>.Shared.Rent(wrappedLines);
+            rangesOfLines = new(rentedArr, 0, wrappedLines);
+
+            Surface.WrapText(text, textWidth, rangesOfLines, out _);
         }
 
         TextBox(rect, text, rangesOfLines, textAlign, scrollFlags, textBoxStyle);
 
-        ArrayPool<Range>.Shared.Return(rangesOfLines);
+        ArrayPool<Range>.Shared.Return(rentedArr);
     }
 
     public void TextBox(Rect rect, ReadOnlySpan<char> text, TextAlignVH textAlign, TextBoxStyle? textBoxStyle = null)
     {
-        TextBox(rect, text, textAlign, TextBoxScrollFlags.None);
+        TextBox(rect, text, textAlign, TextBoxScrollFlags.None, textBoxStyle);
     }
 
     public void TextBox(Rect rect, ReadOnlySpan<char> text, TextBoxStyle? textBoxStyle = null)
