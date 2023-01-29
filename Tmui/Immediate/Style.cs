@@ -35,7 +35,6 @@ public record struct ScrollbarStyle(
     char TrackChar,
     Color TrackColor,
 
-    ColorByInteraction ThumbColor,
     char ThumbChar
 );
 

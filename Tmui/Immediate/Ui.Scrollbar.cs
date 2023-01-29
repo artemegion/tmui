@@ -4,10 +4,12 @@ namespace Tmui.Immediate;
 
 public partial class Ui
 {
-    public void Scrollbar(Rect rect, Axis contentAxis, int contentAxisLength, ref int scrollValue, bool inputIgnoresAxis = true, ScrollbarStyle? scrollbarStyle = null)
+    public void Scrollbar(Rect rect, Axis contentAxis, int contentAxisLength, ref int scrollValue, bool inputIgnoresAxis = true, ScrollbarStyle? scrollbarStyle = null, AccentStyle? accentStyle = null)
     {
-        int controlId = CreateControlId();
         scrollbarStyle ??= contentAxis == Axis.Vertical ? Style.ScrollbarV : Style.ScrollbarH;
+        accentStyle ??= Style.Accent;
+
+        int controlId = CreateControlId();
         int rectAxisLength = contentAxis == Axis.Vertical ? rect.H : rect.W;
 
         Surface.FillCharRect(rect, scrollbarStyle.Value.TrackChar, scrollbarStyle.Value.TrackColor);
@@ -15,7 +17,9 @@ public partial class Ui
         float visibleFrac = float.Clamp((float)rectAxisLength / contentAxisLength, 0f, 1f);
         int maxScrollValue = int.Max(0, contentAxisLength - (contentAxis == Axis.Vertical ? rect.H : rect.W));
 
-        if (GetInteraction(rect, controlId).Hover)
+        InteractionState thumbInteraction = GetInteraction(rect, controlId);
+
+        if (thumbInteraction.Hover)
         {
             int scrollValueChange = 0;
             if (inputIgnoresAxis)
@@ -55,7 +59,7 @@ public partial class Ui
                 _ => throw new ArgumentException($"Not recognized {nameof(contentAxis)} value, expected one of Vertical or Horizontal, got {(int)contentAxis} instead.")
             };
 
-            Surface.FillCharRect(thumbRect, scrollbarStyle.Value.ThumbChar, scrollbarStyle.Value.ThumbColor.Default);
+            Surface.FillCharRect(thumbRect, scrollbarStyle.Value.ThumbChar, accentStyle.Value.GetColor(Enabled));
         }
     }
 }

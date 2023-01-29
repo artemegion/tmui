@@ -192,8 +192,8 @@ public partial class Ui
             Button: new(Color.White, interactionColors),
             Checkbox: new('✓', Color.White, interactionColors),
             Dropdown: new(new(Color.White, interactionColors), new(Color.White, interactionColors)),
-            ScrollbarV: new(Glyph.RIGHT_HALF_BLOCK_CHAR, new(80, 80, 80), new(defaultAccent, hoverAccent, activeAccent), Glyph.RIGHT_HALF_BLOCK_CHAR),
-            ScrollbarH: new(Glyph.LOWER_THREE_EIGHTS_BLOCK_CHAR, new(80, 80, 80), new(defaultAccent, hoverAccent, activeAccent), Glyph.LOWER_THREE_EIGHTS_BLOCK_CHAR)
+            ScrollbarV: new(Glyph.RIGHT_HALF_BLOCK_CHAR, new(80, 80, 80), Glyph.RIGHT_HALF_BLOCK_CHAR),
+            ScrollbarH: new(Glyph.LOWER_THREE_EIGHTS_BLOCK_CHAR, new(80, 80, 80), Glyph.LOWER_THREE_EIGHTS_BLOCK_CHAR)
         );
     }
 }
