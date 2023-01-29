@@ -44,7 +44,7 @@ app.AddMsgHandler<UpdateMsg>(_ =>
         ui.Style.Accent = ui.Style.Accent with { Default = accentColors[selectedAccentColorIndex] };
     }
 
-    ui.TextBox((2, 5, 30, 15), new ReadOnlySpan<char>(loremIpsum), loremIpsumLines, (TextAlign.Start, textBoxHorizontalAlign), scrollFlags);
+    ui.TextBox((2, 5, 30, 15), new ReadOnlySpan<char>(loremIpsum), (TextAlign.Start, textBoxHorizontalAlign), scrollFlags);
 
     ui.Label((34, 5), "Text alignment");
 
