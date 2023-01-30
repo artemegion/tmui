@@ -1,22 +1,14 @@
 ﻿using Tmui.Core;
 using Tmui.Device;
 using Tmui.Graphics;
-using Tmui.Messages;
-using Tmui.Extensions;
-
-// TODO:
-// + ScrollView
-// + Dropdown
-// + SelectBox
-// + Button checkbox
-// + TextBox built-in scrolling
-//   + no vertical align with scrolling
-// + Checkbox with label overload
-// + Docs
-// + comments explaining code
-// + refactor common code
 
 namespace Tmui.Immediate;
+
+public struct InteractionMask
+{
+    public Rect Rect;
+    public int ControlId;
+}
 
 public partial class Ui
 {
@@ -25,30 +17,26 @@ public partial class Ui
         _radialGroups = new(5);
         _scrollStates = new(10);
 
-        _prevFrameIxn = new(100);
-
         _openedDropdownId = -1;
-        _openedDropdownRect = new(0, 0, 0, 0);
-        _changed = false;
 
         _cursorPosPlease = null;
+        _changed = false;
 
         Style = CreateDefaultStyle();
 
         Terminal = terminal;
+        _context = new(Terminal);
+
         Surface.Clear();
         Surface = new Surface(terminal.BufferSize.X, terminal.BufferSize.Y);
 
         Input = input;
+        Interactions = new(this);
 
-        _context = new(Terminal);
-
-        InteractionOverride = new();
         ControlId = -1;
 
         Enabled = true;
         Changed = false;
-        ReqRedraw = false;
     }
 
     private readonly TerminalGraphicsContext _context;
@@ -56,10 +44,7 @@ public partial class Ui
     private readonly Stack<ValueTuple<int, int>> _radialGroups;
     private readonly Dictionary<int, Scroll> _scrollStates;
 
-    private Dictionary<int, InteractionState> _prevFrameIxn;
-
     private int _openedDropdownId; // -1 means no dropdown is opened
-    private Rect _openedDropdownRect;
     private bool _changed;
 
     private Pos? _cursorPosPlease; // move cursor here after rendering is done
@@ -70,7 +55,8 @@ public partial class Ui
     public Surface Surface { get; }
     public Input Input { get; }
 
-    public InteractionOverride InteractionOverride { get; }
+    public Interactions Interactions { get; }
+
     public int ControlId { get; private set; }
 
     public bool Enabled { get; set; }
@@ -86,7 +72,8 @@ public partial class Ui
 
         ControlId = -1;
 
-        GetInteraction(new(0, 0, Terminal.BufferSize));
+        Interactions.UpdateInteractionCache();
+        Interactions.Get(new(0, 0, Terminal.BufferSize), -1);
     }
 
     public bool Flush(bool force = false)
@@ -115,41 +102,9 @@ public partial class Ui
         ReqRedraw = false;
 
         if (_openedDropdownId == -1)
-            _openedDropdownRect.Reset();
+            Interactions.PopOverride();
 
         return false;
-    }
-
-    public InteractionState GetInteraction(Rect rect, int controlId = -1)
-    {
-        if (InteractionOverride.Current.HasValue)
-        {
-            return InteractionOverride.Current.Value;
-        }
-        else
-        {
-            if (!Enabled) return new InteractionState(false, false, false);
-
-            bool isHover = (!Input.PressedMousePos.HasValue || Rect.IsPointInside(rect, Input.PressedMousePos.Value)) && Rect.IsPointInside(rect, Input.MousePos);
-
-            if (isHover && !_openedDropdownRect.IsOrigin && Rect.IsPointInside(_openedDropdownRect, Input.MousePos))
-            {
-                isHover = controlId == _openedDropdownId || (controlId >= _openedDropdownId + 1000000 && controlId < _openedDropdownId + 1000000 + 1000);
-            }
-
-            var interaction = new InteractionState(
-                isHover,
-                isHover && Input.KeyHeld(Key.MouseLeft),
-                isHover && Input.KeyReleased(Key.MouseLeft) && Input.PressedMousePos.HasValue && Rect.IsPointInside(rect, Input.PressedMousePos.Value)
-            );
-
-            if (!_prevFrameIxn.ContainsKey(controlId) || _prevFrameIxn[controlId] != interaction)
-                ReqRedraw = true;
-
-            _prevFrameIxn[controlId] = interaction;
-
-            return interaction;
-        }
     }
 
     public Scroll GetScroll(int controlId)

@@ -11,7 +11,7 @@ public partial class Ui
         buttonStyle ??= Style.Button;
         accentStyle ??= Style.Accent;
 
-        var interaction = GetInteraction(rect, controlId);
+        var interaction = Interactions.Get(rect, controlId);
 
         Color bgColor = buttonStyle.Value.BgColor.GetColor(interaction);
 

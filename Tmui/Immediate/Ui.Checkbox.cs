@@ -7,13 +7,13 @@ public partial class Ui
 {
     public void Checkbox(ref bool isChecked, Pos pos, CheckboxStyle? checkboxStyle = null, AccentStyle? accentStyle = null)
     {
-        int controlId = CreateControlId();;
+        int controlId = CreateControlId(); ;
         checkboxStyle ??= Style.Checkbox;
         accentStyle ??= Style.Accent;
 
         Rect rect = new(pos.X, pos.Y, 2, 1);
 
-        var interaction = GetInteraction(rect, controlId);
+        var interaction = Interactions.Get(rect, controlId);
 
         Color bgColor = checkboxStyle.Value.BgColor.GetColor(interaction);
 
@@ -34,17 +34,19 @@ public partial class Ui
 
     public void Checkbox(ref bool isChecked, Rect rect, ReadOnlySpan<char> label, TextAlignVH labelAlign, CheckboxStyle? checkboxStyle = null, AccentStyle? accentStyle = null, TextBoxStyle? textBoxStyle = null)
     {
-        int controlId = CreateControlId();;
+        int controlId = CreateControlId();
         checkboxStyle ??= Style.Checkbox;
         accentStyle ??= Style.Accent;
         textBoxStyle ??= Style.TextBox with { BgColor = Color.Transparent };
 
-        InteractionState state = GetInteraction(rect, controlId);
-        if (state.Any) InteractionOverride.Push(state);
+        // InteractionState state = GetInteraction(rect, controlId);
+        Interaction state = Interactions.Get(rect, controlId);
+        // if (state.Any) InteractionOverride.Push(state);
+        if (state.Any) Interactions.PushOverride(new(state));
 
         Checkbox(ref isChecked, new(rect.X, rect.Y), checkboxStyle, accentStyle);
         TextBox(rect with { X = rect.X + 3, W = rect.W - 3 }, label, labelAlign, textBoxStyle);
 
-        if (state.Any) InteractionOverride.Pop();
+        if (state.Any) Interactions.PopOverride();
     }
 }

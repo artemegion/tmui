@@ -2,14 +2,12 @@
 
 namespace Tmui.Immediate;
 
-public struct InteractionState : IEqualityOperators<InteractionState, InteractionState, bool>
+public struct Interaction : IEqualityOperators<Interaction, Interaction, bool>
 {
-    public InteractionState()
-    {
+    public static Interaction None => new Interaction(false, false, false);
 
-    }
 
-    public InteractionState(bool hover, bool active, bool clicked)
+    public Interaction(bool hover, bool active, bool clicked)
     {
         Hover = hover;
         Active = active;
@@ -32,7 +30,7 @@ public struct InteractionState : IEqualityOperators<InteractionState, Interactio
     // override object.Equals
     public override bool Equals(object? obj)
     {
-        if (obj is InteractionState ixn)
+        if (obj is Interaction ixn)
             return Hover == ixn.Hover && Active == ixn.Active && Clicked == ixn.Clicked;
         else
             return false;
@@ -44,12 +42,12 @@ public struct InteractionState : IEqualityOperators<InteractionState, Interactio
         return Hover.GetHashCode() ^ Active.GetHashCode() ^ Clicked.GetHashCode();
     }
 
-    public static bool operator ==(InteractionState left, InteractionState right)
+    public static bool operator ==(Interaction left, Interaction right)
     {
         return left.Active == right.Active && left.Hover == right.Hover && left.Clicked == right.Clicked;
     }
 
-    public static bool operator !=(InteractionState left, InteractionState right)
+    public static bool operator !=(Interaction left, Interaction right)
     {
         return left.Active != right.Active || left.Hover != right.Hover || left.Clicked != right.Clicked;
     }

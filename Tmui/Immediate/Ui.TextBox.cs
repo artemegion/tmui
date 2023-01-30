@@ -30,29 +30,33 @@ public partial class Ui
 
         Surface.FillRect(rect, textBoxStyle.Value.BgColor);
 
-        InteractionState textInteraction = GetInteraction(new(rect.X, rect.Y, canScrollVertical ? rect.W - 1 : rect.W, canScrollHorizontal ? rect.H - 1 : rect.H), controlId);
+        Interaction textInteraction = Interactions.Get(new(rect.X, rect.Y, canScrollVertical ? rect.W - 1 : rect.W, canScrollHorizontal ? rect.H - 1 : rect.H), controlId);
 
         if (canScrollHorizontal || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow))
         {
             bool overrideScrollbarInteraction = textInteraction.Hover && Input.KeyHeld(Key.LeftShift);
-            if (overrideScrollbarInteraction) InteractionOverride.Push(textInteraction);
+            // if (overrideScrollbarInteraction) InteractionOverride.Push(textInteraction);
+            if (overrideScrollbarInteraction) Interactions.PushOverride(new(textInteraction, rect));
 
             // TODO: textbox with height 1
             textRect.H -= 1;
             Scrollbar(new(rect.X, rect.Y + rect.H - 1, canScrollVertical ? rect.W - 1 : rect.W, 1), Axis.Horizontal, horizontalContentLength, ref scroll.ScrollX);
 
-            if (overrideScrollbarInteraction) InteractionOverride.Pop();
+            // if (overrideScrollbarInteraction) InteractionOverride.Pop();
+            if (overrideScrollbarInteraction) Interactions.PopOverride();
         }
         else CreateControlId(); // use id even if no scrollbar is present, so when content changes it doesn't fuck up other control's state
 
         if (canScrollVertical || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow))
         {
-            if (textInteraction.Hover) InteractionOverride.Push(textInteraction);
+            // if (textInteraction.Hover) InteractionOverride.Push(textInteraction);
+            if (textInteraction.Hover) Interactions.PushOverride(new(textInteraction, rect));
 
             textRect.W -= 1;
             Scrollbar(new(rect.X + rect.W - 1, rect.Y, 1, canScrollHorizontal ? rect.H - 1 : rect.H), Axis.Vertical, verticalContentLength, ref scroll.ScrollY);
 
-            if (textInteraction.Hover) InteractionOverride.Pop();
+            // if (textInteraction.Hover) InteractionOverride.Pop();
+            if (textInteraction.Hover) Interactions.PopOverride();
         }
         else CreateControlId();
 

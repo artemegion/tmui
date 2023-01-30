@@ -17,7 +17,7 @@ public partial class Ui
         float visibleFrac = float.Clamp((float)rectAxisLength / contentAxisLength, 0f, 1f);
         int maxScrollValue = int.Max(0, contentAxisLength - (contentAxis == Axis.Vertical ? rect.H : rect.W));
 
-        InteractionState thumbInteraction = GetInteraction(rect, controlId);
+        Interaction thumbInteraction = Interactions.Get(rect, controlId);
 
         if (thumbInteraction.Hover)
         {

@@ -23,7 +23,7 @@ public record struct ColorByInteraction(Color Default, Color Hover, Color Active
 #if !DEBUG || DEBUG_RELEASE
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-    public Color GetColor(InteractionState interaction)
+    public Color GetColor(Interaction interaction)
     {
         if (interaction.Active) return Active;
         else if (interaction.Hover) return Hover;

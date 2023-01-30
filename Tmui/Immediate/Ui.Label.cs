@@ -9,7 +9,7 @@ public partial class Ui
         int controlId = CreateControlId();
         labelStyle ??= Style.Label;
 
-        GetInteraction(new(0,0,0,0), controlId); // to req redraw
+        Interactions.Get(new(0,0,0,0), controlId); // to req redraw
 
         Surface.DrawLabel(pos, text, labelStyle.Value.TextColor, labelStyle.Value.BgColor);
     }

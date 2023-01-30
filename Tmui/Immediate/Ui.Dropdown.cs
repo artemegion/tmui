@@ -1,4 +1,6 @@
-﻿using Tmui.Core;
+﻿using System.Buffers;
+
+using Tmui.Core;
 using Tmui.Graphics;
 
 namespace Tmui.Immediate;
@@ -17,7 +19,8 @@ public partial class Ui
 
         selectedOption = int.Clamp(selectedOption, 0, options.Length - 1);
 
-        var headerInteraction = GetInteraction(rect, controlId);
+        // var headerInteraction = GetInteraction(rect, controlId);
+        var headerInteraction = Interactions.Get(rect, controlId);
 
         Color bgColor = dropdownStyle.Value.Header.BgColor.GetColor(headerInteraction);
 
@@ -41,7 +44,8 @@ public partial class Ui
                 Rect optionRect = new(rect.X, optionsRect.Y + optionsRect.H, rect.W, wrappedLinesCount);
                 optionsRect.H += wrappedLinesCount;
 
-                var optionInteraction = GetInteraction(optionRect, controlId + 1000000 + optionIndex);
+                // var optionInteraction = GetInteraction(optionRect, controlId + 1000000 + optionIndex);
+                var optionInteraction = Interactions.Get(optionRect, controlId * 100 + optionIndex);
 
                 bgColor = dropdownStyle.Value.Option.BgColor.GetColor(optionInteraction);
 
@@ -51,7 +55,7 @@ public partial class Ui
 
                 if (optionInteraction.Clicked)
                 {
-                    _ = GetInteraction(optionRect, controlId);
+                    _ = Interactions.Get(optionRect, controlId);
 
                     int newSelectedOption = optionIndex;
                     if (newSelectedOption != selectedOption) Changed = true;
@@ -67,13 +71,14 @@ public partial class Ui
             // `opened` may change inside the for loop above
             if (_openedDropdownId == controlId)
             {
-                _openedDropdownRect = optionsRect;
+                //_openedDropdownRect = optionsRect;    
+                Interactions.PushOverride(new(Interaction.None, optionsRect, Enumerable.Range(controlId * 100 + 0, controlId * 100 + options.Length).Prepend(controlId).ToArray()));
 
                 // masking the bounds of the options so controls drawn later can't draw over the dropdown
                 Surface.Mask.Push(optionsRect, CompoundMask.MaskType.Exclusive);
 
                 // clicking at the screen but not at the control should close the dropdown
-                var bufferInteraction = GetInteraction(new(0, 0, Terminal.BufferSize.X, Terminal.BufferSize.Y));
+                var bufferInteraction = Interactions.Get(new(0, 0, Terminal.BufferSize.X, Terminal.BufferSize.Y), -1);
                 if (bufferInteraction.Clicked && !headerInteraction.Clicked)
                 {
                     _openedDropdownId = -1;

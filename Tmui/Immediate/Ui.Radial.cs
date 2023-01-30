@@ -13,7 +13,7 @@ public partial class Ui
 
         Rect rect = new(pos.X, pos.Y, 2, 1);
 
-        var interaction = GetInteraction(rect, controlId);
+        var interaction = Interactions.Get(rect, controlId);
         Color bgColor = checkboxStyle.Value.BgColor.GetColor(interaction);
 
         Surface.DrawPixel(pos, bgColor);
