@@ -50,4 +50,22 @@ public static class SpanOfRangeExtensions
 
         return longest;
     }
+
+    public static Span<Range> WithoutTrailingRanges(this Span<Range> ranges, int length)
+    {
+        int lIndex = 0;
+
+        for (int i = 0, rangesLength = ranges.Length; i < rangesLength; i++)
+        {
+            int rangeLen = ranges[i].GetOffsetAndLength(length).Length;
+            if (rangeLen > 0) lIndex = i;
+        }
+
+        return ranges[0..(lIndex + 1)];
+    }
+
+    public static int GetLength(this Span<Range> ranges, int index, int length)
+    {
+        return ranges[index].GetOffsetAndLength(length).Length;
+    }
 }

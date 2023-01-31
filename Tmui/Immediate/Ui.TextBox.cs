@@ -94,6 +94,7 @@ public partial class Ui
 
         Range[] rentedArr = ArrayPool<Range>.Shared.Rent(rect.H);
         Span<Range> rangesOfLines = new(rentedArr, 0, rect.H);
+        rangesOfLines.Clear();
 
         Surface.WrapText(text, textWidth, rangesOfLines, out int wrappedLines);
 
@@ -105,6 +106,7 @@ public partial class Ui
 
             rentedArr = ArrayPool<Range>.Shared.Rent(wrappedLines);
             rangesOfLines = new(rentedArr, 0, wrappedLines);
+            rangesOfLines.Clear();
 
             Surface.WrapText(text, textWidth, rangesOfLines, out _);
         }
@@ -122,11 +124,5 @@ public partial class Ui
     public void TextBox(Rect rect, ReadOnlySpan<char> text, TextBoxStyle? textBoxStyle = null)
     {
         TextBox(rect, text, TextAlign.Start, TextBoxScrollFlags.None, textBoxStyle);
-    }
-
-
-    public void TextBox(Rect rect, Span<char> text, Span<Range> rangesOfLines, TextAlignVH textAlign, TextBoxScrollFlags scrollFlags, TextBoxStyle? textBoxStyle = null)
-    {
-        throw new NotImplementedException();
     }
 }

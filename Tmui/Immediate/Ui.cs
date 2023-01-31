@@ -58,6 +58,7 @@ public partial class Ui
     public Interactions Interactions { get; }
 
     public int ControlId { get; private set; }
+    public int FocusedControlId { get; set; }
 
     public bool Enabled { get; set; }
     public bool Changed { get => _changed; set { _changed = value; if (value) ReqRedraw = true; } }
@@ -73,7 +74,12 @@ public partial class Ui
         ControlId = -1;
 
         Interactions.UpdateInteractionCache();
-        Interactions.Get(new(0, 0, Terminal.BufferSize), -1);
+
+        if (Interactions.Get(new(0, 0, Terminal.BufferSize.X, Terminal.BufferSize.Y), -1).Clicked)
+            FocusedControlId = -1;
+
+        if (FocusedControlId == -1)
+            _cursorPosPlease = null;
     }
 
     public bool Flush(bool force = false)
@@ -85,21 +91,20 @@ public partial class Ui
             _context.DrawSurface((0, 0), Surface);
             _context.Flush();
 
-            if (_cursorPosPlease != null)
+            if (_cursorPosPlease == null)
             {
-                Console.CursorVisible = true;
-                Terminal.CursorPos = _cursorPosPlease.Value;
+                Console.CursorVisible = false;
+                Terminal.CursorPos = new(0, 0);
             }
             else
             {
-                Console.CursorVisible = false;
+                Console.CursorVisible = true;
+                Terminal.CursorPos = _cursorPosPlease.Value;
             }
 
             ReqRedraw = false;
             return true;
         }
-
-        ReqRedraw = false;
 
         if (_openedDropdownId == -1)
             Interactions.PopOverride();
