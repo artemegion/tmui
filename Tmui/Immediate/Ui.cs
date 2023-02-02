@@ -1,6 +1,9 @@
-﻿using Tmui.Core;
+﻿using System.Text;
+
+using Tmui.Core;
 using Tmui.Device;
 using Tmui.Graphics;
+using Tmui.Messages;
 
 namespace Tmui.Immediate;
 
@@ -12,15 +15,18 @@ public struct InteractionMask
 
 public partial class Ui
 {
-    public Ui(ITerminal terminal, Input input)
+    public Ui(IMsgHandlerRegistry msgRegistry, ITerminal terminal, Input input)
     {
+        msgRegistry.AddMsgHandler<CharMsg>(HandleCharMsg);
+
         _radialGroups = new(5);
         _scrollStates = new(10);
 
         _openedDropdownId = -1;
+        _changed = false;
 
         _cursorPosPlease = null;
-        _changed = false;
+        _charInputThisFrame = new(15);
 
         Style = CreateDefaultStyle();
 
@@ -48,6 +54,7 @@ public partial class Ui
     private bool _changed;
 
     private Pos? _cursorPosPlease; // move cursor here after rendering is done
+    private StringBuilder _charInputThisFrame;
 
     public Style Style;
 
@@ -84,6 +91,11 @@ public partial class Ui
 
     public bool Flush(bool force = false)
     {
+        if (_openedDropdownId == -1)
+            Interactions.PopOverride();
+
+        _charInputThisFrame.Clear();
+
         if (ReqRedraw || force)
         {
             Console.CursorVisible = false;
@@ -105,9 +117,6 @@ public partial class Ui
             ReqRedraw = false;
             return true;
         }
-
-        if (_openedDropdownId == -1)
-            Interactions.PopOverride();
 
         return false;
     }
@@ -155,5 +164,10 @@ public partial class Ui
             ScrollbarV: new(Glyph.RIGHT_HALF_BLOCK_CHAR, new(80, 80, 80), Glyph.RIGHT_HALF_BLOCK_CHAR),
             ScrollbarH: new(Glyph.LOWER_THREE_EIGHTS_BLOCK_CHAR, new(80, 80, 80), Glyph.LOWER_THREE_EIGHTS_BLOCK_CHAR)
         );
+    }
+
+    private void HandleCharMsg(CharMsg msg)
+    {
+        _charInputThisFrame.Append(msg.Char);
     }
 }

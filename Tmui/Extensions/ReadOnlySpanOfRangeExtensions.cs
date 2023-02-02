@@ -1,19 +1,10 @@
-﻿// TODO:
-// + ScrollView
-// + Dropdown
-// + SelectBox
-// + Button checkbox
-// + TextBox built-in scrolling
-//   + no vertical align with scrolling
-// + Checkbox with label overload
-// + Docs
-// + comments explaining code
-// + refactor common code
+﻿using System.Runtime.CompilerServices;
 
 namespace Tmui.Extensions;
 
 public static class ReadOnlySpanOfRangeExtensions
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int GetLongest(this ReadOnlySpan<Range> ranges, int length)
     {
         int longest = 0;
@@ -34,6 +25,7 @@ public static class ReadOnlySpanOfRangeExtensions
 
 public static class SpanOfRangeExtensions
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int GetLongest(this Span<Range> ranges, int length)
     {
         int longest = 0;
@@ -51,6 +43,7 @@ public static class SpanOfRangeExtensions
         return longest;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Span<Range> WithoutTrailingRanges(this Span<Range> ranges, int length)
     {
         int lIndex = 0;
@@ -64,6 +57,7 @@ public static class SpanOfRangeExtensions
         return ranges[0..(lIndex + 1)];
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int GetLength(this Span<Range> ranges, int index, int length)
     {
         return ranges[index].GetOffsetAndLength(length).Length;

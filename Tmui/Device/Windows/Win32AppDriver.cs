@@ -41,9 +41,9 @@ public class Win32AppDriver : IAppDriver, ITerminal
         if (!PInvoke.GetConsoleMode(_stdInHandle, out CONSOLE_MODE consoleMode)) throw new Exception("1");
         if (!PInvoke.SetConsoleMode(_stdInHandle, (consoleMode & ~CONSOLE_MODE.ENABLE_QUICK_EDIT_MODE) | CONSOLE_MODE.ENABLE_EXTENDED_FLAGS | CONSOLE_MODE.ENABLE_MOUSE_INPUT | CONSOLE_MODE.ENABLE_WINDOW_INPUT))
             throw new Exception("2");
-        
+
         if (!PInvoke.GetConsoleMode(_stdOutHandle, out consoleMode)) throw new Exception("3");
-        if(!PInvoke.SetConsoleMode(_stdOutHandle, CONSOLE_MODE.ENABLE_PROCESSED_OUTPUT | CONSOLE_MODE.ENABLE_VIRTUAL_TERMINAL_PROCESSING)) throw new Exception("4");
+        if (!PInvoke.SetConsoleMode(_stdOutHandle, CONSOLE_MODE.ENABLE_PROCESSED_OUTPUT | CONSOLE_MODE.ENABLE_VIRTUAL_TERMINAL_PROCESSING)) throw new Exception("4");
 
         Console.InputEncoding = Encoding.UTF8;
         Console.OutputEncoding = Encoding.UTF8;
@@ -66,6 +66,9 @@ public class Win32AppDriver : IAppDriver, ITerminal
                         Key key = TranslateVirtualKeyCode(keyEventRecord.wVirtualKeyCode);
 
                         dispatcher.DispatchMsg<KeyChangedMsg>(new(key, keyEventRecord.bKeyDown));
+
+                        char ch = keyEventRecord.uChar.UnicodeChar;
+                        if (ch != '\0') dispatcher.DispatchMsg<CharMsg>(new(ch));
                         break;
                     case PInvoke.WINDOW_BUFFER_SIZE_EVENT:
                         WINDOW_BUFFER_SIZE_RECORD windowBufferSizeRecord = _inputRecords[i].Event.WindowBufferSizeEvent;

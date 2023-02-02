@@ -30,7 +30,7 @@ public class Input
 
     public bool KeyHeld(Key key)
     {
-        return _keys[key] == KeyState.Down || _keys[key] ==  KeyState.Pressed;
+        return _keys[key] == KeyState.Down || _keys[key] == KeyState.Pressed;
     }
 
     public bool KeyPressed(Key key)
@@ -100,7 +100,7 @@ public class Input
 
     private enum KeyState : byte
     {
-        Up   = 0b0100,
+        Up = 0b0100,
         Down = 0b1000,
 
         ChangedThisFrame = 0b0001,

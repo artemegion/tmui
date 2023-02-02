@@ -18,11 +18,11 @@ TextBoxScrollFlags scrollFlags = TextBoxScrollFlags.None;
 bool scrollFlagsVertical = true;
 bool scrollFlagsHorizontal = false;
 
-char[] charBuf = "Hello, world!\nThis is nice text.".ToCharArray();
+char[] charBuf = "Hello, world!\nThis is nice text.\0\0\0\0\0\0\0\0\0".ToCharArray();
 Range[] lineBuf = new Range[20];
 
 TermApp app = new();
-Ui ui = new(app.Terminal, app.Input);
+Ui ui = new(app, app.Terminal, app.Input);
 
 app.AddMsgHandler<UpdateMsg>(_ =>
 {
