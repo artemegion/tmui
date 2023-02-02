@@ -18,6 +18,12 @@ public interface ITerminal
         set => (Console.CursorLeft, Console.CursorTop) = value;
     }
 
+    bool CursorVisible
+    {
+        get => true;
+        set => Console.CursorVisible = value;
+    }
+
     void Write(Span<char> chars)
     {
         Console.Out.Write(chars);

@@ -32,6 +32,18 @@ public class Win32AppDriver : IAppDriver, ITerminal
         }
     }
 
+    public bool CursorVisible
+    {
+        get
+        {
+            if (!OperatingSystem.IsWindows())
+                throw new PlatformNotSupportedException("");
+            return Console.CursorVisible;
+        }
+
+        set => Console.CursorVisible = value;
+    }
+
     private readonly SafeFileHandle _stdInHandle;
     private readonly SafeFileHandle _stdOutHandle;
     private readonly INPUT_RECORD[] _inputRecords;
@@ -41,14 +53,14 @@ public class Win32AppDriver : IAppDriver, ITerminal
         if (!PInvoke.GetConsoleMode(_stdInHandle, out CONSOLE_MODE consoleMode)) throw new Exception("1");
         if (!PInvoke.SetConsoleMode(_stdInHandle, (consoleMode & ~CONSOLE_MODE.ENABLE_QUICK_EDIT_MODE) | CONSOLE_MODE.ENABLE_EXTENDED_FLAGS | CONSOLE_MODE.ENABLE_MOUSE_INPUT | CONSOLE_MODE.ENABLE_WINDOW_INPUT))
             throw new Exception("2");
-        
+
         if (!PInvoke.GetConsoleMode(_stdOutHandle, out consoleMode)) throw new Exception("3");
-        if(!PInvoke.SetConsoleMode(_stdOutHandle, CONSOLE_MODE.ENABLE_PROCESSED_OUTPUT | CONSOLE_MODE.ENABLE_VIRTUAL_TERMINAL_PROCESSING)) throw new Exception("4");
+        if (!PInvoke.SetConsoleMode(_stdOutHandle, CONSOLE_MODE.ENABLE_PROCESSED_OUTPUT | CONSOLE_MODE.ENABLE_VIRTUAL_TERMINAL_PROCESSING)) throw new Exception("4");
 
         Console.InputEncoding = Encoding.UTF8;
         Console.OutputEncoding = Encoding.UTF8;
 
-        Console.CursorVisible = false;
+        CursorVisible = false;
     }
 
     public void PumpMessages(IMsgDispatcher dispatcher)

@@ -80,19 +80,19 @@ public partial class Ui
     {
         if (ReqRedraw || force)
         {
-            Console.CursorVisible = false;
+            Terminal.CursorVisible = false;
 
             _context.DrawSurface((0, 0), Surface);
             _context.Flush();
 
             if (_cursorPosPlease != null)
             {
-                Console.CursorVisible = true;
+                Terminal.CursorVisible = true;
                 Terminal.CursorPos = _cursorPosPlease.Value;
             }
             else
             {
-                Console.CursorVisible = false;
+                Terminal.CursorVisible = false;
             }
 
             ReqRedraw = false;
