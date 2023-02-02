@@ -10,10 +10,13 @@
 // + comments explaining code
 // + refactor common code
 
+using System.Runtime.CompilerServices;
+
 namespace Tmui.Extensions;
 
 public static class ReadOnlySpanOfRangeExtensions
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int GetLongest(this ReadOnlySpan<Range> ranges, int length)
     {
         int longest = 0;
@@ -34,6 +37,7 @@ public static class ReadOnlySpanOfRangeExtensions
 
 public static class SpanOfRangeExtensions
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int GetLongest(this Span<Range> ranges, int length)
     {
         int longest = 0;
