@@ -1,12 +1,15 @@
-﻿using Tmui.Core;
-using Tmui.Messages;
-using Microsoft.Win32.SafeHandles;
+﻿using System.Text;
 using Windows.Win32;
 using Windows.Win32.System.Console;
-using System.Text;
+using Microsoft.Win32.SafeHandles;
+using Tmui.Core;
+using Tmui.Messages;
 
 namespace Tmui.Device.Windows;
 
+/// <summary>
+/// <see cref="IAppDriver"/> and <see cref="ITerminal"/> for Win32 platform.
+/// </summary>
 public class Win32AppDriver : IAppDriver, ITerminal
 {
     public Win32AppDriver()
