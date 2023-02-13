@@ -5,7 +5,7 @@ namespace Tmui.Immediate;
 /// <summary>
 /// Mouse pointer interactions.
 /// </summary>
-public readonly partial struct Interactions
+public partial class Interactions
 {
     public Interactions(Ui ui)
     {

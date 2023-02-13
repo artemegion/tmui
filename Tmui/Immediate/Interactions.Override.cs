@@ -2,7 +2,7 @@
 
 namespace Tmui.Immediate;
 
-public readonly partial struct Interactions
+public partial class Interactions
 {
     /// <summary>
     /// Override interaction state over a provided area, optionally allowing certain controls to ignore the override.
