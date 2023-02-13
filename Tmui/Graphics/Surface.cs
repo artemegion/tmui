@@ -216,9 +216,9 @@ public struct Surface : IGraphicsContext
             DrawChar((pos.X + i, pos.Y), text[i], color, bgColor);
     }
 
-    public void DrawText(Rect rect, ReadOnlySpan<char> text, ReadOnlySpan<Range> rangesOfLines, TextAlignVH textAlign, Color color, Color? bgColor = default)
+    public void DrawText(Rect rect, ReadOnlySpan<char> text, ReadOnlySpan<Range> rangesOfLines, TextAlignVH textAlign, Color color, Color? bgColor = default, int? longestLineLength = null)
     {
-        int longestLine = rangesOfLines.GetLongest(text.Length);
+        int longestLine = longestLineLength ?? rangesOfLines.GetLongest(text.Length);
 
         for (int lineIndex = 0; lineIndex < rangesOfLines.Length && lineIndex < rect.H; lineIndex++)
         {

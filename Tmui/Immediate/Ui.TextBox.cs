@@ -78,7 +78,7 @@ public partial class Ui
 
         Surface.Mask.PushExclusiveArea(maskRect);
 
-        Surface.DrawText(textRect, text, rangesOfLines, textAlign, textBoxStyle.Value.TextColor);
+        Surface.DrawText(textRect, text, rangesOfLines, textAlign, textBoxStyle.Value.TextColor, longestLineLength: horizontalContentLength);
 
         Surface.Mask.PopExclusiveArea();
     }
