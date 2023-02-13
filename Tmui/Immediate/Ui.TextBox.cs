@@ -35,12 +35,20 @@ public partial class Ui
         if (canScrollHorizontal || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow))
         {
             bool overrideScrollbarInteraction = textInteraction.Hover && Input.KeyHeld(Key.LeftShift);
-            // if (overrideScrollbarInteraction) InteractionOverride.Push(textInteraction);
             if (overrideScrollbarInteraction) Interactions.PushOverride(new(textInteraction, rect));
 
-            // TODO: textbox with height 1
-            textRect.H -= 1;
-            Scrollbar(new(rect.X, rect.Y + rect.H - 1, canScrollVertical ? rect.W - 1 : rect.W, 1), Axis.Horizontal, horizontalContentLength, ref scroll.ScrollX);
+            bool e = Enabled;
+            if (scrollFlags.HasFlag(TextBoxScrollFlags.DisableHorizontal))
+                Enabled = false;
+
+            if (!scrollFlags.HasFlag(TextBoxScrollFlags.HideHorizontal))
+            {
+                // TODO: textbox with height 1
+                // textRect.H -= 1;
+                Scrollbar(new(rect.X, rect.Y + rect.H - 1, canScrollVertical ? rect.W - 1 : rect.W, 1), Axis.Horizontal, horizontalContentLength, ref scroll.ScrollX);
+            }
+
+            Enabled = e;
 
             // if (overrideScrollbarInteraction) InteractionOverride.Pop();
             if (overrideScrollbarInteraction) Interactions.PopOverride();
@@ -52,8 +60,17 @@ public partial class Ui
             // if (textInteraction.Hover) InteractionOverride.Push(textInteraction);
             if (textInteraction.Hover) Interactions.PushOverride(new(textInteraction, rect));
 
-            textRect.W -= 1;
-            Scrollbar(new(rect.X + rect.W - 1, rect.Y, 1, canScrollHorizontal ? rect.H - 1 : rect.H), Axis.Vertical, verticalContentLength, ref scroll.ScrollY);
+            bool e = Enabled;
+            if (scrollFlags.HasFlag(TextBoxScrollFlags.DisableVertical))
+                Enabled = false;
+
+            if (!scrollFlags.HasFlag(TextBoxScrollFlags.HideVertical))
+            {
+                // textRect.W -= 1;
+                Scrollbar(new(rect.X + rect.W - 1, rect.Y, 1, canScrollHorizontal ? rect.H - 1 : rect.H), Axis.Vertical, verticalContentLength, ref scroll.ScrollY);
+            }
+
+            Enabled = e;
 
             // if (textInteraction.Hover) InteractionOverride.Pop();
             if (textInteraction.Hover) Interactions.PopOverride();
@@ -68,7 +85,9 @@ public partial class Ui
         if (scroll.ScrollY >= rangesOfLines.Length) rangesOfLines = Span<Range>.Empty;
         else rangesOfLines = rangesOfLines[scroll.ScrollY..];
 
-        Rect maskRect = (canScrollHorizontal || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow), canScrollVertical || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow)) switch
+        bool h = (canScrollHorizontal || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow)) && !scrollFlags.HasFlag(TextBoxScrollFlags.HideHorizontal);
+        bool v = (canScrollVertical || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow)) && !scrollFlags.HasFlag(TextBoxScrollFlags.HideVertical);
+        Rect maskRect = (h, v) switch
         {
             (true, true) => new(rect.X, rect.Y, rect.W - 1, rect.H - 1),
             (true, false) => new(rect.X, rect.Y, rect.W, rect.H - 1),
@@ -90,7 +109,11 @@ public partial class Ui
 
     public void TextBox(Rect rect, ReadOnlySpan<char> text, TextAlignVH textAlign, TextBoxScrollFlags scrollFlags, TextBoxStyle? textBoxStyle = null)
     {
-        int textWidth = scrollFlags.HasFlag(TextBoxScrollFlags.Horizontal) ? int.MaxValue : (scrollFlags.HasFlag(TextBoxScrollFlags.Vertical) ? rect.W - 1 : rect.W);
+        int textWidth = scrollFlags.HasFlag(TextBoxScrollFlags.Horizontal)
+            ? int.MaxValue
+            : (scrollFlags.HasFlag(TextBoxScrollFlags.Vertical) && !scrollFlags.HasFlag(TextBoxScrollFlags.HideVertical)
+                ? rect.W - 1
+                : rect.W);
 
         Range[] rentedArr = ArrayPool<Range>.Shared.Rent(rect.H);
         Span<Range> rangesOfLines = new(rentedArr, 0, rect.H);
