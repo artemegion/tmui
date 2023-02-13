@@ -99,13 +99,13 @@ public struct Surface : IGraphicsContext
     public int Width { get; }
     public int Height { get; }
 
-    public InteractionMask Mask { get; }
+    public Masking Mask { get; }
 
     public ref Glyph GetGlyphRef(Pos pos)
     {
-        if (pos.X < 0 || pos.X >= Width || pos.Y < 0 || pos.Y >= Height || !Mask.IsPointVisible(pos))
+        if (pos.X < 0 || pos.X >= Width || pos.Y < 0 || pos.Y >= Height || !Mask.Test(pos))
             return ref _fakeBuffer[0];
-
+        
         return ref _buffer[pos.Y * Width + pos.X];
     }
 

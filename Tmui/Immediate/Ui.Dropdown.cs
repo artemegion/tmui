@@ -75,7 +75,7 @@ public partial class Ui
                 Interactions.PushOverride(new(Interaction.None, optionsRect, Enumerable.Range(controlId * 100 + 0, controlId * 100 + options.Length).Prepend(controlId).ToArray()));
 
                 // masking the bounds of the options so controls drawn later can't draw over the dropdown
-                Surface.Mask.Push(optionsRect, Graphics.InteractionMask.MaskType.Exclusive);
+                Surface.Mask.PushRestrictedArea(optionsRect);
 
                 // clicking at the screen but not at the control should close the dropdown
                 var bufferInteraction = Interactions.Get(new(0, 0, Terminal.BufferSize.X, Terminal.BufferSize.Y), -1);

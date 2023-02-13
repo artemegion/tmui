@@ -76,11 +76,11 @@ public partial class Ui
             (false, false) => rect
         };
 
-        Surface.Mask.Push(maskRect);
+        Surface.Mask.PushExclusiveArea(maskRect);
 
         Surface.DrawText(textRect, text, rangesOfLines, textAlign, textBoxStyle.Value.TextColor);
 
-        Surface.Mask.Pop();
+        Surface.Mask.PopExclusiveArea();
     }
 
     public void TextBox(Rect rect, ReadOnlySpan<char> text, ReadOnlySpan<Range> rangesOfLines, TextAlignVH textAlign, TextBoxStyle? textBoxStyle = null)
