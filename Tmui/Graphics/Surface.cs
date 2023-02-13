@@ -1,4 +1,5 @@
 ﻿using Tmui.Core;
+using Tmui.Extensions;
 
 namespace Tmui.Graphics;
 
@@ -105,7 +106,7 @@ public struct Surface : IGraphicsContext
     {
         if (pos.X < 0 || pos.X >= Width || pos.Y < 0 || pos.Y >= Height || !Mask.Test(pos))
             return ref _fakeBuffer[0];
-        
+
         return ref _buffer[pos.Y * Width + pos.X];
     }
 
@@ -217,6 +218,8 @@ public struct Surface : IGraphicsContext
 
     public void DrawText(Rect rect, ReadOnlySpan<char> text, ReadOnlySpan<Range> rangesOfLines, TextAlignVH textAlign, Color color, Color? bgColor = default)
     {
+        int longestLine = rangesOfLines.GetLongest(text.Length);
+
         for (int lineIndex = 0; lineIndex < rangesOfLines.Length && lineIndex < rect.H; lineIndex++)
         {
             int lineLength = rangesOfLines[lineIndex].GetOffsetAndLength(text.Length).Length;
@@ -233,7 +236,8 @@ public struct Surface : IGraphicsContext
             {
                 TextAlign.Start => rect.X,
                 TextAlign.End => rect.X + rect.W - lineLength,
-                TextAlign.Center => rect.X + (rect.W / 2) - lineLength / 2,
+                // TextAlign.Center => rect.X + (rect.W / 2) - lineLength / 2,
+                TextAlign.Center => rect.X - (lineLength / 2 - longestLine / 2),
                 _ => throw new Exception()
             };
 
