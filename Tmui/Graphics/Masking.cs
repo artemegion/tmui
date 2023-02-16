@@ -2,6 +2,10 @@
 
 namespace Tmui.Graphics;
 
+/// <summary>
+/// Mask areas so access to them is restricted, or that they are the only accessible areas.
+/// </summary>
+/// <seealso cref="Masking.Test(Pos)"/>
 public class Masking
 {
     public Masking()
@@ -13,6 +17,12 @@ public class Masking
     private readonly Stack<Rect> _exclusiveAreas;
     private readonly Stack<Rect> _restrictedAreas;
 
+    /// <summary>
+    /// A point at <paramref name="pos"/> tests <c>true</c> if its not inside any restricted area
+    /// and is inside at least one exclusive area, if there are any.
+    /// </summary>
+    /// <param name="pos">The position of the point to test.</param>
+    /// <returns>True if a point at <paramref name="pos"/> is accessible, false otherwise.</returns>
     public bool Test(Pos pos)
     {
         bool e = false, r = true;
@@ -49,26 +59,43 @@ public class Masking
         return true;
     }
 
+    /// <summary>
+    /// Push a new exclusive area.
+    /// </summary>
+    /// <param name="area">The area to push.</param>
     public void PushExclusiveArea(Rect area)
     {
         _exclusiveAreas.Push(area);
     }
 
+    /// <summary>
+    /// Remove the most recently pushed exclusive area.
+    /// </summary>
     public void PopExclusiveArea()
     {
         _ = _exclusiveAreas.TryPop(out _);
     }
 
+    /// <summary>
+    /// Push a new restricted area.
+    /// </summary>
+    /// <param name="area">The area to push.</param>
     public void PushRestrictedArea(Rect area)
     {
         _restrictedAreas.Push(area);
     }
 
+    /// <summary>
+    /// Remove the most recently pushed restricted area.
+    /// </summary>
     public void PopRestrictedArea()
     {
         _ = _restrictedAreas.TryPop(out _);
     }
 
+    /// <summary>
+    /// Remove all areas.
+    /// </summary>
     public void Clear()
     {
         _restrictedAreas.Clear();

@@ -121,7 +121,7 @@ public partial class Ui
         Surface.WrapText(text, textWidth, rangesOfLines, out int wrappedLines);
 
         // If there are more lines than what we predicted (rect.H), get a sufficiently sized buffer and wrap the text again.
-        // May not be the most optimal solution, but it works. Also I don't expect to have a lot of lines in a text box.
+        // May not be the most optimal solution, but it works.
         if (wrappedLines > rangesOfLines.Length)
         {
             ArrayPool<Range>.Shared.Return(rentedArr);
