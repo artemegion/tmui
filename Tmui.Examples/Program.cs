@@ -17,6 +17,10 @@ int selectedTextAlignIndex = 1;
 TextBoxScrollFlags scrollFlags = TextBoxScrollFlags.None;
 bool scrollFlagsVertical = true;
 bool scrollFlagsHorizontal = false;
+bool disableVertical = false;
+bool disableHorizontal = false;
+bool hideVertical = false;
+bool hideHorizontal = false;
 
 char[] charBuf = "Hello, world!\nThis is nice text.\0\0\0\0\0\0\0\0\0".ToCharArray();
 Range[] lineBuf = new Range[20];
@@ -73,7 +77,20 @@ app.AddMsgHandler<UpdateMsg>(_ =>
     ui.Checkbox(ref scrollFlagsVertical, (34, 15, 15, 1), "Vertical", TextAlign.Start);
     ui.Checkbox(ref scrollFlagsHorizontal, (34, 17, 20, 1), "Horizontal", TextAlign.Start);
 
-    scrollFlags = (scrollFlagsVertical ? TextBoxScrollFlags.Vertical : TextBoxScrollFlags.None) | (scrollFlagsHorizontal ? TextBoxScrollFlags.Horizontal : TextBoxScrollFlags.None);
+    ui.Checkbox(ref disableVertical, (34, 19, 20, 1), "Disable Vertical", TextAlign.Start);
+    ui.Checkbox(ref disableHorizontal, (34, 21, 24, 1), "Disable Horizontal", TextAlign.Start);
+
+    ui.Checkbox(ref hideVertical, (34, 23, 20, 1), "Hide Vertical", TextAlign.Start);
+    ui.Checkbox(ref hideHorizontal, (34, 25, 20, 1), "Hide Horizontal", TextAlign.Start);
+
+    scrollFlags = TextBoxScrollFlags.None;
+
+    if (scrollFlagsVertical) scrollFlags |= TextBoxScrollFlags.Vertical;
+    if (scrollFlagsHorizontal) scrollFlags |= TextBoxScrollFlags.Horizontal;
+    if (disableVertical) scrollFlags |= TextBoxScrollFlags.DisableVertical;
+    if (disableHorizontal) scrollFlags |= TextBoxScrollFlags.DisableHorizontal;
+    if (hideVertical) scrollFlags |= TextBoxScrollFlags.HideVertical;
+    if (hideHorizontal) scrollFlags |= TextBoxScrollFlags.HideHorizontal;
 
     ui.TextBox((34, 19, 11, 5), (Span<char>)charBuf, lineBuf, TextAlign.Start, TextBoxScrollFlags.None);
 

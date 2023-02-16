@@ -1,5 +1,12 @@
 ﻿namespace Tmui;
 
+/// <summary>
+/// An RGBA32 color.
+/// </summary>
+/// <param name="R">The red component.</param>
+/// <param name="G">The green component.</param>
+/// <param name="B">The blue component.</param>
+/// <param name="A">The alpha component.</param>
 public record struct Color(byte R, byte G, byte B, byte A)
 {
     public static Color White { get; } = new Color(255, 255, 255, 255);

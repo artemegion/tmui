@@ -1,10 +1,10 @@
 ﻿namespace Tmui;
 
 /// <summary>
-/// 
+/// A Glyph describes the content and formatting of a single character in the terminal.
 /// </summary>
 /// <param name="Char">The character.</param>
-/// <param name="ForegroundColor">The foreground color. It is not alpha blended with the background.</param>
+/// <param name="ForegroundColor">The foreground color. It is not alpha blended with the background color.</param>
 /// <param name="BackgroundColor">The background color.</param>
 public record struct Glyph(char Char, Color ForegroundColor, Color BackgroundColor)
 {
@@ -21,5 +21,8 @@ public record struct Glyph(char Char, Color ForegroundColor, Color BackgroundCol
     public const char TRIANGLE_DOWN_CHAR = '▼';
     public const char TRIANGLE_RIGHT_CHAR = '▶';
 
+    /// <summary>
+    /// The foreground color alpha blended with the background color.
+    /// </summary>
     public Color AlphaBlendedForegroundColor => Color.AlphaBlend(ForegroundColor, BackgroundColor);
 }

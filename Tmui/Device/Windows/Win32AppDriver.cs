@@ -1,12 +1,15 @@
-﻿using Tmui.Core;
-using Tmui.Messages;
-using Microsoft.Win32.SafeHandles;
+﻿using System.Text;
 using Windows.Win32;
 using Windows.Win32.System.Console;
-using System.Text;
+using Microsoft.Win32.SafeHandles;
+using Tmui.Core;
+using Tmui.Messages;
 
 namespace Tmui.Device.Windows;
 
+/// <summary>
+/// <see cref="IAppDriver"/> and <see cref="ITerminal"/> for Win32 platform.
+/// </summary>
 public class Win32AppDriver : IAppDriver, ITerminal
 {
     public Win32AppDriver()
@@ -32,6 +35,18 @@ public class Win32AppDriver : IAppDriver, ITerminal
         }
     }
 
+    public bool CursorVisible
+    {
+        get
+        {
+            if (!OperatingSystem.IsWindows())
+                throw new PlatformNotSupportedException("");
+            return Console.CursorVisible;
+        }
+
+        set => Console.CursorVisible = value;
+    }
+
     private readonly SafeFileHandle _stdInHandle;
     private readonly SafeFileHandle _stdOutHandle;
     private readonly INPUT_RECORD[] _inputRecords;
@@ -48,7 +63,7 @@ public class Win32AppDriver : IAppDriver, ITerminal
         Console.InputEncoding = Encoding.UTF8;
         Console.OutputEncoding = Encoding.UTF8;
 
-        Console.CursorVisible = false;
+        CursorVisible = false;
     }
 
     public void PumpMessages(IMsgDispatcher dispatcher)

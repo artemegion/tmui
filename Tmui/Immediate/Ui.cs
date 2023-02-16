@@ -1,9 +1,6 @@
-﻿using System.Text;
-
-using Tmui.Core;
+﻿using Tmui.Core;
 using Tmui.Device;
 using Tmui.Graphics;
-using Tmui.Messages;
 
 namespace Tmui.Immediate;
 
@@ -15,18 +12,15 @@ public struct InteractionMask
 
 public partial class Ui
 {
-    public Ui(IMsgHandlerRegistry msgRegistry, ITerminal terminal, Input input)
+    public Ui(ITerminal terminal, Input input)
     {
-        msgRegistry.AddMsgHandler<CharMsg>(HandleCharMsg);
-
         _radialGroups = new(5);
         _scrollStates = new(10);
 
         _openedDropdownId = -1;
-        _changed = false;
 
         _cursorPosPlease = null;
-        _charInputThisFrame = new(15);
+        _changed = false;
 
         Style = CreateDefaultStyle();
 
@@ -54,7 +48,6 @@ public partial class Ui
     private bool _changed;
 
     private Pos? _cursorPosPlease; // move cursor here after rendering is done
-    private StringBuilder _charInputThisFrame;
 
     public Style Style;
 
@@ -65,7 +58,6 @@ public partial class Ui
     public Interactions Interactions { get; }
 
     public int ControlId { get; private set; }
-    public int FocusedControlId { get; set; }
 
     public bool Enabled { get; set; }
     public bool Changed { get => _changed; set { _changed = value; if (value) ReqRedraw = true; } }
@@ -81,42 +73,36 @@ public partial class Ui
         ControlId = -1;
 
         Interactions.UpdateInteractionCache();
-
-        if (Interactions.Get(new(0, 0, Terminal.BufferSize.X, Terminal.BufferSize.Y), -1).Clicked)
-            FocusedControlId = -1;
-
-        if (FocusedControlId == -1)
-            _cursorPosPlease = null;
+        Interactions.Get(new(0, 0, Terminal.BufferSize), -1);
     }
 
     public bool Flush(bool force = false)
     {
-        if (_openedDropdownId == -1)
-            Interactions.PopOverride();
-
-        _charInputThisFrame.Clear();
-
         if (ReqRedraw || force)
         {
-            Console.CursorVisible = false;
+            Terminal.CursorVisible = false;
 
             _context.DrawSurface((0, 0), Surface);
             _context.Flush();
 
-            if (_cursorPosPlease == null)
+            if (_cursorPosPlease != null)
             {
-                Console.CursorVisible = false;
-                Terminal.CursorPos = new(0, 0);
+                Terminal.CursorVisible = true;
+                Terminal.CursorPos = _cursorPosPlease.Value;
             }
             else
             {
-                Console.CursorVisible = true;
-                Terminal.CursorPos = _cursorPosPlease.Value;
+                Terminal.CursorVisible = false;
             }
 
             ReqRedraw = false;
             return true;
         }
+
+        ReqRedraw = false;
+
+        if (_openedDropdownId == -1)
+            Interactions.PopOverride();
 
         return false;
     }
@@ -164,10 +150,5 @@ public partial class Ui
             ScrollbarV: new(Glyph.RIGHT_HALF_BLOCK_CHAR, new(80, 80, 80), Glyph.RIGHT_HALF_BLOCK_CHAR),
             ScrollbarH: new(Glyph.LOWER_THREE_EIGHTS_BLOCK_CHAR, new(80, 80, 80), Glyph.LOWER_THREE_EIGHTS_BLOCK_CHAR)
         );
-    }
-
-    private void HandleCharMsg(CharMsg msg)
-    {
-        _charInputThisFrame.Append(msg.Char);
     }
 }

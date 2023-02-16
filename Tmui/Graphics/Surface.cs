@@ -1,4 +1,5 @@
 ﻿using Tmui.Core;
+using Tmui.Extensions;
 
 namespace Tmui.Graphics;
 
@@ -99,11 +100,11 @@ public struct Surface : IGraphicsContext
     public int Width { get; }
     public int Height { get; }
 
-    public CompoundMask Mask { get; }
+    public Masking Mask { get; }
 
     public ref Glyph GetGlyphRef(Pos pos)
     {
-        if (pos.X < 0 || pos.X >= Width || pos.Y < 0 || pos.Y >= Height || !Mask.IsPointInside(pos))
+        if (pos.X < 0 || pos.X >= Width || pos.Y < 0 || pos.Y >= Height || !Mask.Test(pos))
             return ref _fakeBuffer[0];
 
         return ref _buffer[pos.Y * Width + pos.X];
@@ -215,8 +216,10 @@ public struct Surface : IGraphicsContext
             DrawChar((pos.X + i, pos.Y), text[i], color, bgColor);
     }
 
-    public void DrawText(Rect rect, ReadOnlySpan<char> text, ReadOnlySpan<Range> rangesOfLines, TextAlignVH textAlign, Color color, Color? bgColor = default)
+    public void DrawText(Rect rect, ReadOnlySpan<char> text, ReadOnlySpan<Range> rangesOfLines, TextAlignVH textAlign, Color color, Color? bgColor = default, int? longestLineLength = null)
     {
+        int longestLine = longestLineLength ?? rangesOfLines.GetLongest(text.Length);
+
         for (int lineIndex = 0; lineIndex < rangesOfLines.Length && lineIndex < rect.H; lineIndex++)
         {
             int lineLength = rangesOfLines[lineIndex].GetOffsetAndLength(text.Length).Length;
@@ -233,7 +236,8 @@ public struct Surface : IGraphicsContext
             {
                 TextAlign.Start => rect.X,
                 TextAlign.End => rect.X + rect.W - lineLength,
-                TextAlign.Center => rect.X + (rect.W / 2) - lineLength / 2,
+                // TextAlign.Center => rect.X + (rect.W / 2) - lineLength / 2,
+                TextAlign.Center => rect.X - (lineLength / 2 - longestLine / 2),
                 _ => throw new Exception()
             };
 

@@ -2,9 +2,12 @@
 
 namespace Tmui.Immediate;
 
+/// <summary>
+/// Mouse interaction state.
+/// </summary>
 public struct Interaction : IEqualityOperators<Interaction, Interaction, bool>
 {
-    public static Interaction None => new Interaction(false, false, false);
+    public static Interaction None => new(false, false, false);
 
 
     public Interaction(bool hover, bool active, bool clicked)
@@ -14,10 +17,25 @@ public struct Interaction : IEqualityOperators<Interaction, Interaction, bool>
         Clicked = clicked;
     }
 
+    /// <summary>
+    /// Mouse pointer is positioned over the area.
+    /// </summary>
     public bool Hover;
+
+    /// <summary>
+    /// <see cref="Interaction.Hover"/> is <c>true</c> and the left mouse button is pressed.
+    /// </summary>
     public bool Active;
+
+    /// <summary>
+    /// <see cref="Interaction.Hover"/> is <c>true</c> and the left mouse button was pressed
+    /// in the previous frame and is released in current frame.
+    /// </summary>
     public bool Clicked;
 
+    /// <summary>
+    /// Is there any interaction.
+    /// </summary>
     public bool Any => Hover || Active || Clicked;
 
     public void Deconstruct(out bool Hover, out bool Active, out bool Clicked)
