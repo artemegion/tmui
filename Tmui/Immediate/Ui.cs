@@ -58,6 +58,7 @@ public partial class Ui
     public Interactions Interactions { get; }
 
     public int ControlId { get; private set; }
+    public int FocusedControlId { get; set; }
 
     public bool Enabled { get; set; }
     public bool Changed { get => _changed; set { _changed = value; if (value) ReqRedraw = true; } }

@@ -8,14 +8,15 @@ public class Input
     public Input(IMsgHandlerRegistry msgHandlerRegistry)
     {
         _keys = new();
+        _charInputBuf = new char[20];
+        _charsInputThisFrame = 0;
 
         foreach (Key key in Enum.GetValues<Key>())
-        {
             _keys[key] = 0;
-        }
 
         MousePos = (0, 0);
 
+        msgHandlerRegistry.AddMsgHandler<CharMsg>(HandleCharMsg);
         msgHandlerRegistry.AddMsgHandler<KeyChangedMsg>(HandleKeyChangedMsg);
         msgHandlerRegistry.AddMsgHandler<MouseMovedMsg>(HandleMouseMovedMsg);
         msgHandlerRegistry.AddMsgHandler<MouseScrollMsg>(HandleMouseScrollMsg);
@@ -23,10 +24,15 @@ public class Input
 
     private readonly Dictionary<Key, KeyState> _keys;
 
+    private readonly char[] _charInputBuf;
+    private int _charsInputThisFrame;
+
     public Pos MousePos { get; private set; }
     public Pos? PressedMousePos { get; private set; }
 
     public Pos Scroll { get; private set; }
+
+    public ReadOnlySpan<char> Chars => new(_charInputBuf, 0, _charsInputThisFrame);
 
     public bool KeyHeld(Key key)
     {
@@ -57,6 +63,15 @@ public class Input
         //}
 
         Scroll = s;
+    }
+
+    private void HandleCharMsg(CharMsg msg)
+    {
+        if (_charsInputThisFrame < _charInputBuf.Length)
+        {
+            _charInputBuf[_charsInputThisFrame] = msg.Char;
+            _charsInputThisFrame++;
+        }
     }
 
     private void HandleKeyChangedMsg(KeyChangedMsg msg)
@@ -96,6 +111,8 @@ public class Input
             PressedMousePos = null;
 
         Scroll = new(0, 0);
+
+        _charsInputThisFrame = 0;
     }
 
     private enum KeyState : byte
