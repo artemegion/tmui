@@ -26,7 +26,7 @@ char[] charBuf = "Hello, world!\nThis is nice text.\0\0\0\0\0\0\0\0\0".ToCharArr
 Range[] lineBuf = new Range[20];
 
 TermApp app = new();
-Ui ui = new(app, app.Terminal, app.Input);
+Ui ui = new(app.Terminal, app.Input);
 
 app.AddMsgHandler<UpdateMsg>(_ =>
 {
@@ -92,7 +92,7 @@ app.AddMsgHandler<UpdateMsg>(_ =>
     if (hideVertical) scrollFlags |= TextBoxScrollFlags.HideVertical;
     if (hideHorizontal) scrollFlags |= TextBoxScrollFlags.HideHorizontal;
 
-    ui.TextBox((34, 19, 11, 5), (Span<char>)charBuf, lineBuf, TextAlign.Start, TextBoxScrollFlags.None);
+    ui.TextBox((64, 19, 11, 5), (Span<char>)charBuf, lineBuf, TextAlign.Start, TextBoxScrollFlags.None);
 
     ui.Flush();
 });
