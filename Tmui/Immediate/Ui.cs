@@ -4,12 +4,6 @@ using Tmui.Graphics;
 
 namespace Tmui.Immediate;
 
-public struct InteractionMask
-{
-    public Rect Rect;
-    public int ControlId;
-}
-
 public partial class Ui
 {
     public Ui(ITerminal terminal, Input input)
