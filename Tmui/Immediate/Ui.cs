@@ -68,7 +68,9 @@ public partial class Ui
         ControlId = -1;
 
         Interactions.UpdateInteractionCache();
-        Interactions.Get(new(0, 0, Terminal.BufferSize), -1);
+
+        var windowInteraction = Interactions.Get(new(0, 0, Terminal.BufferSize), -1);
+        if (windowInteraction.Clicked) FocusedControlId = -1;
     }
 
     public bool Flush(bool force = false)
@@ -98,6 +100,12 @@ public partial class Ui
 
         if (_openedDropdownId == -1)
             Interactions.PopOverride();
+
+        if (FocusedControlId == -1)
+        {
+            Terminal.CursorVisible = false;
+            Terminal.CursorPos = new(0, 0);
+        }
 
         return false;
     }
