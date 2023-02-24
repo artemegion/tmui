@@ -22,6 +22,9 @@ public partial class Ui
         int horizontalContentLength = rangesOfLines.GetLongest(text.Length);
         bool canScrollHorizontal = scrollFlags.HasFlag(TextBoxScrollFlags.Horizontal) && horizontalContentLength > rect.W;
 
+        bool showHorizontal = (canScrollHorizontal || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow)) && !scrollFlags.HasFlag(TextBoxScrollFlags.HideHorizontal);
+        bool showVertical = (canScrollVertical || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow)) && !scrollFlags.HasFlag(TextBoxScrollFlags.HideVertical);
+
         if (canScrollVertical)
         {
             // text align doesn't change anything in this case so no sense computing it
@@ -32,7 +35,7 @@ public partial class Ui
 
         Interaction textInteraction = Interactions.Get(new(rect.X, rect.Y, canScrollVertical ? rect.W - 1 : rect.W, canScrollHorizontal ? rect.H - 1 : rect.H), controlId);
 
-        if (canScrollHorizontal || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow))
+        if (showHorizontal)
         {
             bool overrideScrollbarInteraction = textInteraction.Hover && Input.KeyHeld(Key.LeftShift);
             if (overrideScrollbarInteraction) Interactions.PushOverride(new(textInteraction, rect));
@@ -45,7 +48,7 @@ public partial class Ui
             {
                 // TODO: textbox with height 1
                 // textRect.H -= 1;
-                Scrollbar(new(rect.X, rect.Y + rect.H - 1, canScrollVertical ? rect.W - 1 : rect.W, 1), Axis.Horizontal, horizontalContentLength, ref scroll.ScrollX);
+                Scrollbar(new(rect.X, rect.Y + rect.H - 1, showVertical ? rect.W - 1 : rect.W, 1), Axis.Horizontal, horizontalContentLength, ref scroll.ScrollX);
             }
 
             Enabled = e;
@@ -55,7 +58,7 @@ public partial class Ui
         }
         else CreateControlId(); // use id even if no scrollbar is present, so when content changes it doesn't fuck up other control's state
 
-        if (canScrollVertical || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow))
+        if (showVertical)
         {
             // if (textInteraction.Hover) InteractionOverride.Push(textInteraction);
             if (textInteraction.Hover) Interactions.PushOverride(new(textInteraction, rect));
@@ -67,7 +70,7 @@ public partial class Ui
             if (!scrollFlags.HasFlag(TextBoxScrollFlags.HideVertical))
             {
                 // textRect.W -= 1;
-                Scrollbar(new(rect.X + rect.W - 1, rect.Y, 1, canScrollHorizontal ? rect.H - 1 : rect.H), Axis.Vertical, verticalContentLength, ref scroll.ScrollY);
+                Scrollbar(new(rect.X + rect.W - 1, rect.Y, 1, showHorizontal ? rect.H - 1 : rect.H), Axis.Vertical, verticalContentLength, ref scroll.ScrollY);
             }
 
             Enabled = e;
@@ -85,15 +88,15 @@ public partial class Ui
         if (scroll.ScrollY >= rangesOfLines.Length) rangesOfLines = Span<Range>.Empty;
         else rangesOfLines = rangesOfLines[scroll.ScrollY..];
 
-        bool h = (canScrollHorizontal || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow)) && !scrollFlags.HasFlag(TextBoxScrollFlags.HideHorizontal);
-        bool v = (canScrollVertical || scrollFlags.HasFlag(TextBoxScrollFlags.AlwaysShow)) && !scrollFlags.HasFlag(TextBoxScrollFlags.HideVertical);
-        Rect maskRect = (h, v) switch
+        Rect maskRect = (showHorizontal, showVertical) switch
         {
             (true, true) => new(rect.X, rect.Y, rect.W - 1, rect.H - 1),
             (true, false) => new(rect.X, rect.Y, rect.W, rect.H - 1),
             (false, true) => new(rect.X, rect.Y, rect.W - 1, rect.H),
             (false, false) => rect
         };
+
+        if (showVertical) textRect.W -= 1;
 
         Surface.Mask.PushExclusiveArea(maskRect);
 
@@ -109,32 +112,36 @@ public partial class Ui
 
     public void TextBox(Rect rect, ReadOnlySpan<char> text, TextAlignVH textAlign, TextBoxScrollFlags scrollFlags, TextBoxStyle? textBoxStyle = null)
     {
-        int textWidth = scrollFlags.HasFlag(TextBoxScrollFlags.Horizontal)
-            ? int.MaxValue
-            : (scrollFlags.HasFlag(TextBoxScrollFlags.Vertical) && !scrollFlags.HasFlag(TextBoxScrollFlags.HideVertical)
-                ? rect.W - 1
-                : rect.W);
+        int textWidth = CalcTextBoxTextWidth(rect, scrollFlags);
 
-        Range[] rentedArr = ArrayPool<Range>.Shared.Rent(rect.H);
-        Span<Range> rangesOfLines = new(rentedArr, 0, rect.H);
+        ReadOnlySpan<char> textTrimmed = text.TrimEnd('\0');
 
-        Surface.WrapText(text, textWidth, rangesOfLines, out int wrappedLines);
+        // we don't how many lines the text will occupy, so we rent an array of size rect.H to calculate that
+        // and if its not sufficient we rent a new one of appropriate size
+        Range[] rangesOfLinesRented = ArrayPool<Range>.Shared.Rent(rect.H);
 
-        // If there are more lines than what we predicted (rect.H), get a sufficiently sized buffer and wrap the text again.
-        // May not be the most optimal solution, but it works.
-        if (wrappedLines > rangesOfLines.Length)
+        Span<Range> rangesOfLinesSpan = new(rangesOfLinesRented, 0, rect.H);
+        rangesOfLinesSpan.Clear();
+
+        Surface.WrapText(textTrimmed, textWidth, rangesOfLinesRented.AsSpan(0, rect.H), out int wrappedLines);
+
+        // if there are more lines than what we predicted (rect.H), rent a sufficiently sized buffer and wrap the text again
+        if (wrappedLines > rect.H)
         {
-            ArrayPool<Range>.Shared.Return(rentedArr);
+            ArrayPool<Range>.Shared.Return(rangesOfLinesRented);
 
-            rentedArr = ArrayPool<Range>.Shared.Rent(wrappedLines);
-            rangesOfLines = new(rentedArr, 0, wrappedLines);
+            // request one line more than required so we can add characters/a new line to the text
+            rangesOfLinesRented = ArrayPool<Range>.Shared.Rent(wrappedLines + 1);
 
-            Surface.WrapText(text, textWidth, rangesOfLines, out _);
+            rangesOfLinesSpan = new(rangesOfLinesRented, 0, wrappedLines);
+            rangesOfLinesSpan.Clear();
+
+            Surface.WrapText(textTrimmed, textWidth, rangesOfLinesSpan, out _);
         }
 
-        TextBox(rect, text, rangesOfLines, textAlign, scrollFlags, textBoxStyle);
+        TextBox(rect, textTrimmed, rangesOfLinesSpan, textAlign, scrollFlags, textBoxStyle);
 
-        ArrayPool<Range>.Shared.Return(rentedArr);
+        ArrayPool<Range>.Shared.Return(rangesOfLinesRented);
     }
 
     public void TextBox(Rect rect, ReadOnlySpan<char> text, TextAlignVH textAlign, TextBoxStyle? textBoxStyle = null)
@@ -147,9 +154,12 @@ public partial class Ui
         TextBox(rect, text, TextAlign.Start, TextBoxScrollFlags.None, textBoxStyle);
     }
 
-
-    public void TextBox(Rect rect, Span<char> text, Span<Range> rangesOfLines, TextAlignVH textAlign, TextBoxScrollFlags scrollFlags, TextBoxStyle? textBoxStyle = null)
+    private static int CalcTextBoxTextWidth(Rect rect, TextBoxScrollFlags scrollFlags)
     {
-        throw new NotImplementedException();
+        return scrollFlags.HasFlag(TextBoxScrollFlags.Horizontal)
+            ? int.MaxValue
+            : (scrollFlags.HasFlag(TextBoxScrollFlags.Vertical) && !scrollFlags.HasFlag(TextBoxScrollFlags.HideVertical)
+                ? rect.W - 1
+                : rect.W);
     }
 }

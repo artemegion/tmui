@@ -4,12 +4,6 @@ using Tmui.Graphics;
 
 namespace Tmui.Immediate;
 
-public struct InteractionMask
-{
-    public Rect Rect;
-    public int ControlId;
-}
-
 public partial class Ui
 {
     public Ui(ITerminal terminal, Input input)
@@ -58,6 +52,7 @@ public partial class Ui
     public Interactions Interactions { get; }
 
     public int ControlId { get; private set; }
+    public int FocusedControlId { get; set; }
 
     public bool Enabled { get; set; }
     public bool Changed { get => _changed; set { _changed = value; if (value) ReqRedraw = true; } }
@@ -73,7 +68,9 @@ public partial class Ui
         ControlId = -1;
 
         Interactions.UpdateInteractionCache();
-        Interactions.Get(new(0, 0, Terminal.BufferSize), -1);
+
+        var windowInteraction = Interactions.Get(new(0, 0, Terminal.BufferSize), -1);
+        if (windowInteraction.Clicked) FocusedControlId = -1;
     }
 
     public bool Flush(bool force = false)
@@ -103,6 +100,12 @@ public partial class Ui
 
         if (_openedDropdownId == -1)
             Interactions.PopOverride();
+
+        if (FocusedControlId == -1)
+        {
+            Terminal.CursorVisible = false;
+            Terminal.CursorPos = new(0, 0);
+        }
 
         return false;
     }

@@ -81,6 +81,11 @@ public class Win32AppDriver : IAppDriver, ITerminal
                         Key key = TranslateVirtualKeyCode(keyEventRecord.wVirtualKeyCode);
 
                         dispatcher.DispatchMsg<KeyChangedMsg>(new(key, keyEventRecord.bKeyDown));
+
+                        char ch = keyEventRecord.uChar.UnicodeChar;
+
+                        if (ch != '\0' && !char.IsControl(ch))
+                            dispatcher.DispatchMsg<CharMsg>(new(ch));
                         break;
                     case PInvoke.WINDOW_BUFFER_SIZE_EVENT:
                         WINDOW_BUFFER_SIZE_RECORD windowBufferSizeRecord = _inputRecords[i].Event.WindowBufferSizeEvent;
@@ -96,7 +101,7 @@ public class Win32AppDriver : IAppDriver, ITerminal
                             case PInvoke.MOUSE_MOVED:
                                 dispatcher.DispatchMsg(new MouseMovedMsg(new(mouseEventRecord.dwMousePosition.X, mouseEventRecord.dwMousePosition.Y)));
                                 break;
-                            case PInvoke.DOUBLE_CLICK:
+                            case PInvoke.DOUBLE_CLICK: break;
                             case PInvoke.MOUSE_HWHEELED:
                                 // If the high word of the dwButtonState member contains a positive value,
                                 // the wheel was rotated to the right. Otherwise, the wheel was rotated to the left.
@@ -108,9 +113,9 @@ public class Win32AppDriver : IAppDriver, ITerminal
                                 dispatcher.DispatchMsg(new MouseScrollMsg(wheelDir, 0));
                                 break;
                             case PInvoke.MOUSE_WHEELED:
-                                //If the high word of the dwButtonState member contains a positive value,
-                                //the wheel was rotated forward, away from the user.
-                                //Otherwise, the wheel was rotated backward, toward the user.
+                                // If the high word of the dwButtonState member contains a positive value,
+                                // the wheel was rotated forward, away from the user.
+                                // Otherwise, the wheel was rotated backward, toward the user.
 
                                 wheelDir = (int)(mouseEventRecord.dwButtonState & 0xFFFF0000u);
                                 if (wheelDir > 0) wheelDir = -1;

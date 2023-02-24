@@ -7,7 +7,8 @@ public struct Surface : IGraphicsContext
 {
     public static void WrapText(ReadOnlySpan<char> text, int maxWidth, Span<Range> rangesOfLines, out int wrappedLinesCount, int skipLines = 0, bool countAllLines = true)
     {
-        text = text.Trim();
+        // text = text.Trim();
+        rangesOfLines.Clear();
 
         int totalLinesLength = 0; // sum of lengths of all lines
 

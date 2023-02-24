@@ -10,9 +10,6 @@ string[] accentColorNames = new[] { "DodgerBlue", "BlueViolet", "CadetBlue", "Bl
 int selectedAccentColorIndex = 0;
 
 char[] loremIpsum = "Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, \nquis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident,\nsunt in culpa qui officia deserunt mollit anim id est laborum.\n1\n2\n3\n4\n5\n6\n7\n8\n9".ToCharArray();
-Range[] loremIpsumLines = new Range[30];
-Surface.WrapText(loremIpsum, 30, loremIpsumLines, out int w);
-loremIpsumLines = loremIpsumLines[..w];
 
 TextAlign textBoxHorizontalAlign = TextAlign.Center;
 int selectedTextAlignIndex = 1;
@@ -24,6 +21,9 @@ bool disableVertical = false;
 bool disableHorizontal = false;
 bool hideVertical = false;
 bool hideHorizontal = false;
+
+char[] charBuf = "Hello, world!\nThis is nice text.\0\0\0\0\0\0\0\0\0".ToCharArray();
+Range[] lineBuf = new Range[20];
 
 TermApp app = new();
 Ui ui = new(app.Terminal, app.Input);
@@ -91,6 +91,8 @@ app.AddMsgHandler<UpdateMsg>(_ =>
     if (disableHorizontal) scrollFlags |= TextBoxScrollFlags.DisableHorizontal;
     if (hideVertical) scrollFlags |= TextBoxScrollFlags.HideVertical;
     if (hideHorizontal) scrollFlags |= TextBoxScrollFlags.HideHorizontal;
+
+    ui.TextBox((64, 19, 11, 5), (Span<char>)charBuf, lineBuf, TextAlign.Start, TextBoxScrollFlags.None);
 
     ui.Flush();
 });

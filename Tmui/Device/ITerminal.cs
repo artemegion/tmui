@@ -83,6 +83,14 @@ public interface ITerminal
     }
 
     /// <summary>
+    /// Clears the terminal.
+    /// </summary>
+    void Clear()
+    {
+        Console.Clear();
+    }
+
+    /// <summary>
     /// Flushes the output buffer to the terminal.
     /// </summary>
     void Flush()
