@@ -56,12 +56,6 @@ public class Input
         s.X += msg.X;
         s.Y += msg.Y;
 
-        //if (s.Y != 0 && KeyHeld(Key.LeftShift))
-        //{
-        //    s.X = s.Y;
-        //    s.Y = 0;
-        //}
-
         Scroll = s;
     }
 
@@ -83,6 +77,11 @@ public class Input
         }
         else
         {
+            // don't change key state to released in the same frame it was changed to pressed
+            // because the key press will not have any effect in the program
+            if (_keys[msg.Key] == KeyState.Pressed)
+                return;
+
             if (_keys[msg.Key] != KeyState.Up)
                 _keys[msg.Key] = KeyState.Released; // _keys[msg.Key] == KeyState.Released ? KeyState.Up : KeyState.Released;
         }
