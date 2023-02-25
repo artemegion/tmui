@@ -10,6 +10,15 @@ public partial class Ui
 {
     private readonly Dictionary<int, int> _textBoxCursorPos = new(5);
 
+    /// <summary>
+    /// Draws an editable textbox.
+    /// </summary>
+    /// <param name="rect"></param>
+    /// <param name="textBuffer"></param>
+    /// <param name="rangesOfLinesBuffer"></param>
+    /// <param name="textAlign"></param>
+    /// <param name="scrollFlags"></param>
+    /// <param name="textBoxStyle"></param>
     public void TextBox(Rect rect, Span<char> textBuffer, Span<Range> rangesOfLinesBuffer, TextAlignVH textAlign, TextBoxScrollFlags scrollFlags, TextBoxStyle? textBoxStyle = null)
     {
         textBoxStyle ??= Style.TextBox;

@@ -5,9 +5,22 @@ namespace Tmui.Immediate;
 
 public partial class Ui
 {
+    /// <summary>
+    /// Draws a radial. Has to be drawn between calls to <see cref="Ui.BeginRadialGroup(int)"/> and <see cref="Ui.EndRadialGroup(out int)"/> to work properly.
+    /// 
+    /// <para>
+    /// A radial is a type of checkbox used in groups where only one radial can be checked at a time.
+    /// The selected radial is controlled through the parameter passed to <see cref="Ui.BeginRadialGroup(int)"/> and <see cref="Ui.EndRadialGroup(out int)"/>.
+    /// </para>
+    /// </summary>
+    /// <param name="pos">Position to draw the radial at.</param>
+    /// <param name="checkboxStyle">Checkbox style, if null the checkbox style from <see cref="Ui.Style"/> will be used.</param>
+    /// <param name="accentStyle">Accent style, if null the accent style from <see cref="Ui.Style"/> will be used.</param>
+    /// <seealso cref="Ui.BeginRadialGroup(int)"/>
+    /// <seealso cref="Ui.EndRadialGroup(out int)"/>
     public void Radial(Pos pos, CheckboxStyle? checkboxStyle = null, AccentStyle? accentStyle = null)
     {
-        int controlId = CreateControlId();;
+        int controlId = CreateControlId();
         checkboxStyle ??= Style.Checkbox;
         accentStyle ??= Style.Accent;
 

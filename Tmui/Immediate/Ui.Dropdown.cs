@@ -11,6 +11,21 @@ namespace Tmui.Immediate;
 
 public partial class Ui
 {
+    /// <summary>
+    /// Draws a dropdown.
+    /// 
+    /// <para>
+    /// A dropdown lets you select a single option from a list.
+    /// The currently selected option is drawn on the header, and the list will appear when the header is clicked.
+    /// Click on an option to select it, the <paramref name="selectedOption"/> param will change to reflect the selection, 
+    /// and the list will be hidden. You can also click anywhere outside the list to hide it.
+    /// </para>
+    /// </summary>
+    /// <param name="rect">Rectangle to draw the dropdown header on.</param>
+    /// <param name="options">Options available in the dropdown.</param>
+    /// <param name="selectedOption">The selected option.</param>
+    /// <param name="dropdownStyle">Dropdown style, if null the dropdown style from <see cref="Ui.Style"/> will be used.</param>
+    /// <param name="accentStyle">Accent style, if null the accent style from <see cref="Ui.Style"/> will be used.</param>
     public void Dropdown(Rect rect, Span<string> options, ref int selectedOption, DropdownStyle? dropdownStyle = null, AccentStyle? accentStyle = null)
     {
         int controlId = CreateControlId();

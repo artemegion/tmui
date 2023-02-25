@@ -4,6 +4,17 @@ namespace Tmui.Immediate;
 
 public partial class Ui
 {
+    /// <summary>
+    /// Draws a scrollbar.
+    /// </summary>
+    /// <param name="rect"></param>
+    /// <param name="contentAxis"></param>
+    /// <param name="contentAxisLength"></param>
+    /// <param name="scrollValue"></param>
+    /// <param name="inputIgnoresAxis"></param>
+    /// <param name="scrollbarStyle"></param>
+    /// <param name="accentStyle"></param>
+    /// <exception cref="ArgumentException"></exception>
     public void Scrollbar(Rect rect, Axis contentAxis, int contentAxisLength, ref int scrollValue, bool inputIgnoresAxis = true, ScrollbarStyle? scrollbarStyle = null, AccentStyle? accentStyle = null)
     {
         scrollbarStyle ??= contentAxis == Axis.Vertical ? Style.ScrollbarV : Style.ScrollbarH;

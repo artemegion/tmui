@@ -30,7 +30,7 @@ Ui ui = new(app.Terminal, app.Input);
 
 app.AddMsgHandler<UpdateMsg>(_ =>
 {
-    ui.Clear();
+    ui.Begin();
 
     ui.Label((2, 1), "Hello, Tmui!");
 
@@ -94,7 +94,7 @@ app.AddMsgHandler<UpdateMsg>(_ =>
 
     ui.TextBox((64, 19, 11, 5), (Span<char>)charBuf, lineBuf, TextAlign.Start, TextBoxScrollFlags.None);
 
-    ui.Flush();
+    ui.End();
 });
 
 app.Run();

@@ -8,6 +8,15 @@ namespace Tmui.Immediate;
 
 public partial class Ui
 {
+    /// <summary>
+    /// Draws a textbox.
+    /// </summary>
+    /// <param name="rect"></param>
+    /// <param name="text"></param>
+    /// <param name="rangesOfLines"></param>
+    /// <param name="textAlign"></param>
+    /// <param name="scrollFlags"></param>
+    /// <param name="textBoxStyle"></param>
     public void TextBox(Rect rect, ReadOnlySpan<char> text, ReadOnlySpan<Range> rangesOfLines, TextAlignVH textAlign, TextBoxScrollFlags scrollFlags, TextBoxStyle? textBoxStyle = null)
     {
         textBoxStyle ??= Style.TextBox;

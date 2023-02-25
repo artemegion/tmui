@@ -4,8 +4,16 @@ using Tmui.Graphics;
 
 namespace Tmui.Immediate;
 
+/// <summary>
+/// Immediate mode user interface.
+/// </summary>
 public partial class Ui
 {
+    /// <summary>
+    /// Creates a new instance of the <see cref="Ui"/> class.
+    /// </summary>
+    /// <param name="terminal">The terminal to draw the ui to.</param>
+    /// <param name="input">Input provider.</param>
     public Ui(ITerminal terminal, Input input)
     {
         _radialGroups = new(5);
@@ -43,22 +51,71 @@ public partial class Ui
 
     private Pos? _cursorPosPlease; // move cursor here after rendering is done
 
+    /// <summary>
+    /// The style for all controls. Can be overriden for individual controls.
+    /// </summary>
     public Style Style;
 
+    /// <summary>
+    /// Terminal to which the ui is drawn to.
+    /// </summary>
     public ITerminal Terminal { get; }
+
+    /// <summary>
+    /// Surface used to draw the controls. Can be used to draw to the terminal.
+    /// </summary>
     public Surface Surface { get; }
+
+    /// <summary>
+    /// Input provider.
+    /// </summary>
     public Input Input { get; }
 
+    /// <summary>
+    /// Mouse pointer interactions.
+    /// </summary>
     public Interactions Interactions { get; }
 
+    /// <summary>
+    /// The id of most recently drawn control.
+    /// </summary>
     public int ControlId { get; private set; }
+
+    /// <summary>
+    /// The id of control that has focus.
+    /// </summary>
     public int FocusedControlId { get; set; }
 
+    /// <summary>
+    /// Controls drawn while the <see cref="Ui.Enabled"/> property is set to <c>false</c> will not be interactable.
+    /// </summary>
     public bool Enabled { get; set; }
+
+    /// <summary>
+    /// Set to true if a state of the most recently drawn control changed. Set to false after calling <see cref="Ui.Begin"/>.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// bool isChecked = false;
+    /// 
+    /// ui.Checkbox(ref isChecked, (1, 1));
+    /// if (ui.Changed)
+    /// {
+    ///     // the value of field `isChecked` has changed because the user interacted with the control
+    /// }
+    /// </code>
+    /// </example>
     public bool Changed { get => _changed; set { _changed = value; if (value) ReqRedraw = true; } }
+
+    /// <summary>
+    /// If set to true causes the <see cref="Ui.Surface"/> to be written to the terminal, and is then set to false.
+    /// </summary>
     public bool ReqRedraw { get; set; }
 
-    public void Clear()
+    /// <summary>
+    /// Has to be called each frame before drawing any controls.
+    /// </summary>
+    public void Begin()
     {
         Surface.Clear();
         Surface.Mask.Clear();
@@ -73,9 +130,14 @@ public partial class Ui
         if (windowInteraction.Clicked) FocusedControlId = -1;
     }
 
-    public bool Flush(bool force = false)
+    /// <summary>
+    /// Has to be called each frame after drawing all the controls.
+    /// </summary>
+    /// <param name="forceFlush">Forces the <see cref="Ui.Surface"/> to be written to the <see cref="Ui.Terminal"/>.</param>
+    /// <returns>True if the <see cref="Ui.Surface"/> was written to the <see cref="Ui.Terminal"/>, false otherwise.</returns>
+    public bool End(bool forceFlush = false)
     {
-        if (ReqRedraw || force)
+        if (ReqRedraw || forceFlush)
         {
             Terminal.CursorVisible = false;
 
@@ -110,6 +172,12 @@ public partial class Ui
         return false;
     }
 
+    /// <summary>
+    /// Get the scroll data for a control with specific id.
+    /// The data is stored internally and persists between frames.
+    /// </summary>
+    /// <param name="controlId">The control id.</param>
+    /// <returns>Scroll data for control with id <paramref name="controlId"/>.</returns>
     public Scroll GetScroll(int controlId)
     {
         if (_scrollStates.TryGetValue(controlId, out var state))
