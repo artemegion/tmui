@@ -20,88 +20,91 @@ public partial class Ui
         if (text.Length > 0 && rangesOfLinesBuffer.GetLongest(text.Length) < 1)
             Surface.WrapText(text, CalcTextBoxTextWidth(rect, scrollFlags), rangesOfLinesBuffer, out _);
 
-        Interaction interaction = Interactions.Get(rect, controlId);
-        if (interaction.Clicked) FocusedControlId = controlId;
-
-        if (FocusedControlId == controlId)
+        if (Enabled)
         {
-            int cursorPos = _textBoxCursorPos.GetValueOrDefault(controlId, 0);
-            var lineAtCursorPos = rangesOfLinesBuffer.GetFromIndex(text.Length, cursorPos);
+            Interaction interaction = Interactions.Get(rect, controlId);
+            if (interaction.Clicked) FocusedControlId = controlId;
 
-            bool anyCharsWritten = false, anyCharsRemoved = false;
-
-            // do text modification before cursor pos shenanigans to reuse the pos constraint etc. logic
-            if (text.Length < textBuffer.Length)
+            if (FocusedControlId == controlId)
             {
-                ReadOnlySpan<char> chars = Input.Chars;
+                int cursorPos = _textBoxCursorPos.GetValueOrDefault(controlId, 0);
+                var lineAtCursorPos = rangesOfLinesBuffer.GetFromIndex(text.Length, cursorPos);
 
-                if (chars.Length > 0)
+                bool anyCharsWritten = false, anyCharsRemoved = false;
+
+                // do text modification before cursor pos shenanigans to reuse the pos constraint etc. logic
+                if (text.Length < textBuffer.Length)
                 {
-                    textBuffer[cursorPos..text.Length].CopyTo(textBuffer[(cursorPos + 1)..]);
-                    textBuffer[cursorPos] = chars[0];
+                    ReadOnlySpan<char> chars = Input.Chars;
 
-                    text = textBuffer[0..(text.Length + 1)];
-                    Surface.WrapText(text, rect.W, rangesOfLinesBuffer, out _);
+                    if (chars.Length > 0)
+                    {
+                        textBuffer[cursorPos..text.Length].CopyTo(textBuffer[(cursorPos + 1)..]);
+                        textBuffer[cursorPos] = chars[0];
 
-                    anyCharsWritten = true;
+                        text = textBuffer[0..(text.Length + 1)];
+                        Surface.WrapText(text, rect.W, rangesOfLinesBuffer, out _);
+
+                        anyCharsWritten = true;
+                        ReqRedraw = true;
+                    }
+                }
+
+                if (Input.KeyPressed(Key.Backspace))
+                {
+                    if (cursorPos > 0)
+                    {
+                        textBuffer[(cursorPos)..].CopyTo(textBuffer[(cursorPos - 1)..]);
+                        text = textBuffer.TrimEnd('\0');
+
+                        Surface.WrapText(text, rect.W, rangesOfLinesBuffer, out _);
+
+                        anyCharsRemoved = true;
+                        ReqRedraw = true;
+                    }
+                }
+
+                if (Input.KeyPressed(Key.LeftArrow) || anyCharsRemoved)
+                {
+                    cursorPos = int.Clamp(cursorPos - 1, 0, text.Length);
                     ReqRedraw = true;
                 }
-            }
 
-            if (Input.KeyPressed(Key.Backspace))
-            {
-                if (cursorPos > 0)
+                if (Input.KeyPressed(Key.RightArrow) || anyCharsWritten)
                 {
-                    textBuffer[(cursorPos)..].CopyTo(textBuffer[(cursorPos - 1)..]);
-                    text = textBuffer.TrimEnd('\0');
-
-                    Surface.WrapText(text, rect.W, rangesOfLinesBuffer, out _);
-
-                    anyCharsRemoved = true;
+                    cursorPos = int.Clamp(cursorPos + 1, 0, text.Length);
                     ReqRedraw = true;
                 }
-            }
 
-            if (Input.KeyPressed(Key.LeftArrow) || anyCharsRemoved)
-            {
-                cursorPos = int.Clamp(cursorPos - 1, 0, text.Length);
-                ReqRedraw = true;
-            }
-
-            if (Input.KeyPressed(Key.RightArrow) || anyCharsWritten)
-            {
-                cursorPos = int.Clamp(cursorPos + 1, 0, text.Length);
-                ReqRedraw = true;
-            }
-
-            if (Input.KeyPressed(Key.UpArrow))
-            {
-                if (lineAtCursorPos.Index == 0) return;
-
-                int o = lineAtCursorPos.Offset;
-                cursorPos = int.Clamp(cursorPos - lineAtCursorPos.Offset - 1, 0, text.Length);
-
-                if (lineAtCursorPos.Offset <= rangesOfLinesBuffer.GetLength(lineAtCursorPos.Index - 1, text.Length))
+                if (Input.KeyPressed(Key.UpArrow))
                 {
-                    lineAtCursorPos = rangesOfLinesBuffer.GetFromIndex(text.Length, cursorPos);
-                    cursorPos = int.Clamp(cursorPos - rangesOfLinesBuffer.GetLength(lineAtCursorPos.Index, text.Length) + o, 0, text.Length);
+                    if (lineAtCursorPos.Index == 0) return;
+
+                    int o = lineAtCursorPos.Offset;
+                    cursorPos = int.Clamp(cursorPos - lineAtCursorPos.Offset - 1, 0, text.Length);
+
+                    if (lineAtCursorPos.Offset <= rangesOfLinesBuffer.GetLength(lineAtCursorPos.Index - 1, text.Length))
+                    {
+                        lineAtCursorPos = rangesOfLinesBuffer.GetFromIndex(text.Length, cursorPos);
+                        cursorPos = int.Clamp(cursorPos - rangesOfLinesBuffer.GetLength(lineAtCursorPos.Index, text.Length) + o, 0, text.Length);
+                    }
+
+                    ReqRedraw = true;
                 }
 
-                ReqRedraw = true;
+                if (Input.KeyPressed(Key.DownArrow))
+                {
+                    if (lineAtCursorPos.Index >= rangesOfLinesBuffer.WithoutTrailingRanges(text.Length).Length) return;
+
+                    cursorPos = int.Clamp(cursorPos + rangesOfLinesBuffer.GetLength(lineAtCursorPos.Index, text.Length) - lineAtCursorPos.Offset + 1 + lineAtCursorPos.Offset, 0, text.Length);
+                    ReqRedraw = true;
+                }
+
+                lineAtCursorPos = rangesOfLinesBuffer.GetFromIndex(text.Length, cursorPos);
+
+                _cursorPosPlease = new(rect.X + lineAtCursorPos.Offset, rect.Y + lineAtCursorPos.Index);
+                _textBoxCursorPos[controlId] = cursorPos;
             }
-
-            if (Input.KeyPressed(Key.DownArrow))
-            {
-                if (lineAtCursorPos.Index >= rangesOfLinesBuffer.WithoutTrailingRanges(text.Length).Length) return;
-
-                cursorPos = int.Clamp(cursorPos + rangesOfLinesBuffer.GetLength(lineAtCursorPos.Index, text.Length) - lineAtCursorPos.Offset + 1 + lineAtCursorPos.Offset, 0, text.Length);
-                ReqRedraw = true;
-            }
-
-            lineAtCursorPos = rangesOfLinesBuffer.GetFromIndex(text.Length, cursorPos);
-
-            _cursorPosPlease = new(rect.X + lineAtCursorPos.Offset, rect.Y + lineAtCursorPos.Index);
-            _textBoxCursorPos[controlId] = cursorPos;
         }
 
         --ControlId; // textbox gets a new id, this way it is the same
